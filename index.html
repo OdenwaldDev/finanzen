@@ -1,0 +1,792 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#1D2760"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://lvaukuzgcwgqipxwzabo.supabase.co wss://lvaukuzgcwgqipxwzabo.supabase.co; img-src 'self' data: blob:"><title>Finanzplan SV/BSC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800;900&display=swap">
+<style>
+:root{
+  --cond:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --bg:#F7F4EE;--surface:#FFFFFF;--surface2:#EFEBE3;--line:#DDD6C8;--ink:#1C1C22;--text:#3A3A44;--muted:#6B6B76;
+  --marine:#1D2760;--accent:#E8741F;--onaccent:#fff;--onprimary:#fff;
+  --s1:#2E4BB0;--s2:#D9661A;--total:#1C1C22;--grid:#E6E0D4;
+  --good:#2F7D4F;--goodbg:#E3F1E8;--warn:#9A5B00;--warnbg:#FBEFD9;--bad:#B3261E;--badbg:#FBE4E2;
+  --shadow:0 1px 2px rgba(28,28,34,.06),0 4px 14px rgba(28,28,34,.05);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#15161B;--surface:#1E2027;--surface2:#262932;--line:#343845;--ink:#F2F0EA;--text:#D5D3CD;--muted:#9C9AA5;
+  --marine:#AFC3F5;--accent:#E8741F;--onaccent:#fff;--onprimary:#15161B;
+  --s1:#5B7FD6;--s2:#D2722C;--total:#F2F0EA;--grid:#2C2F3A;
+  --good:#7FD19E;--goodbg:#1D3326;--warn:#F2C26B;--warnbg:#3A2E15;--bad:#F2928A;--badbg:#3D1E1C;
+  --shadow:none;color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#15161B;--surface:#1E2027;--surface2:#262932;--line:#343845;--ink:#F2F0EA;--text:#D5D3CD;--muted:#9C9AA5;
+  --marine:#AFC3F5;--accent:#E8741F;--onaccent:#fff;--onprimary:#15161B;
+  --s1:#5B7FD6;--s2:#D2722C;--total:#F2F0EA;--grid:#2C2F3A;
+  --good:#7FD19E;--goodbg:#1D3326;--warn:#F2C26B;--warnbg:#3A2E15;--bad:#F2928A;--badbg:#3D1E1C;
+  --shadow:none;color-scheme:dark;}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Barlow,"Segoe UI",Arial,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:18px 60px}
+h1,h2,h3,.cond{font-family:var(--cond);color:var(--ink);letter-spacing:-.01em}
+h1{font-size:30px;font-weight:900;text-transform:uppercase;margin:0;line-height:1}
+h2{font-size:20px;font-weight:800;text-transform:uppercase;margin:0 0 10px}
+h3{font-size:16px;font-weight:800;text-transform:uppercase;margin:0}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .k{font-family:var(--cond);font-weight:900;font-size:22px;color:var(--marine)}
+.brand .sep{width:1.5px;height:30px;background:var(--ink)}
+.brand .s{font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);line-height:1.25}
+.lbl{font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:2px solid var(--ink);margin-bottom:16px;scrollbar-width:none}
+.tabs button{flex:none;background:none;border:0;padding:10px 12px;font:700 14px/1 var(--cond);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.grid{display:grid;gap:12px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;box-shadow:var(--shadow);min-width:0}
+.kpi .z{font-family:var(--cond);font-weight:800;font-size:28px;line-height:1.05;color:var(--ink);font-variant-numeric:tabular-nums}
+.kpi .d{font-size:13px;color:var(--muted)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:baseline}
+.pos{color:var(--good)}.neg{color:var(--bad)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sp{flex:1}
+button,.btn{font:600 14px Barlow,sans-serif;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 12px;cursor:pointer}
+button.primary{background:var(--marine);border-color:var(--marine);color:var(--onprimary)}
+button.ghost{background:none;border-color:transparent;color:var(--muted);padding:6px 8px}
+button.chip{border-radius:999px;padding:6px 12px;font-size:13px}
+button.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:disabled{opacity:.5;cursor:default}
+input,select,textarea{font:15px Barlow,sans-serif;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-width:0}
+label.f{display:grid;gap:4px;font-size:13px;color:var(--muted)}
+.list{display:grid}
+.item{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.item:hover{background:var(--surface2)}
+.item .n{font-weight:600;color:var(--ink);min-width:0;overflow-wrap:anywhere}
+.item .a{font-family:var(--cond);font-weight:800;font-size:18px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.item .m{font-size:13px;color:var(--muted);grid-column:1/-1}
+.tag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:1px 7px;border-radius:999px;background:var(--surface2);color:var(--muted);margin-left:4px;vertical-align:1px}
+.tag.unsicher{background:var(--warnbg);color:var(--warn)}
+.tag.geplant{background:var(--surface2)}
+.note{border-radius:10px;padding:10px 12px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
+.note.good{background:var(--goodbg);color:var(--good)}.note.warn{background:var(--warnbg);color:var(--warn)}.note.bad{background:var(--badbg);color:var(--bad)}
+.note b{color:inherit}
+.note .ic{font-weight:800;font-family:var(--cond);font-size:13px;letter-spacing:.06em;text-transform:uppercase;flex:none;padding-top:1px}
+.chartbox{position:relative}
+.chartbox svg{display:block;width:100%;height:auto}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.4;min-width:170px;transform:translate(-50%,-110%);white-space:nowrap;font-variant-numeric:tabular-nums;z-index:2}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text);margin-top:6px}
+.legend .sw{display:inline-block;width:16px;height:3px;border-radius:2px;margin-right:6px;vertical-align:4px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;border-bottom:2px solid var(--ink);padding:6px}
+td{border-bottom:1px solid var(--line);padding:6px;vertical-align:top}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.scroll{overflow-x:auto}
+.sheet{position:fixed;inset:0;background:rgba(10,10,14,.45);display:flex;align-items:flex-end;justify-content:center;z-index:10;padding-top:env(safe-area-inset-top,0px)}
+.sheet .panel{background:var(--surface);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:14px 14px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+@media(min-width:700px){.sheet{align-items:center}.sheet .panel{border-radius:14px}}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fgrid .full{grid-column:1/-1}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{white-space:nowrap;border:0;border-radius:0;flex:1;background:var(--surface);color:var(--muted);padding:8px 6px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.answer{white-space:pre-wrap;font-size:15px;line-height:1.55;color:var(--text)}
+.empty{color:var(--muted);font-size:14px;padding:14px 4px}
+.bar{height:8px;border-radius:4px;background:var(--surface2);overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:4px}
+.banner{background:var(--warnbg);color:var(--warn);border-radius:8px;padding:8px 12px;font-size:14px;margin-bottom:12px}
+.small{font-size:13px;color:var(--muted)}
+.vrow{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:12px 4px;border-bottom:1px solid var(--line)}
+.drop{display:block;cursor:pointer;border:2px dashed var(--line);border-radius:10px;padding:22px;text-align:center;color:var(--muted)}
+.drop.over{border-color:var(--marine);color:var(--ink)}
+@media(max-width:520px){#who{width:100%}.kp3>:first-child{grid-column:1/-1}.hz{width:100%}h1{font-size:24px}.fgrid{grid-template-columns:1fr}.kpi .z{font-size:24px}}
+</style>
+</head><body><div class="wrap">
+  <div class="top">
+    <div>
+      <div class="brand"><span class="k">SV/BSC</span><span class="sep"></span><span class="s">Mörlenbach<br>· Fußball</span></div>
+      <h1 style="margin-top:12px">Finanzplan</h1>
+    </div>
+    <div class="row"><span id="who" class="row"></span>
+      <span class="lbl">Rechnen</span>
+      <div class="seg" id="modeSeg">
+        <button data-mode="normal" aria-pressed="true">Erwartet</button>
+        <button data-mode="vorsicht" aria-pressed="false">Vorsichtig</button>
+      </div>
+    </div>
+  </div>
+  <div id="banner"></div>
+  <nav class="tabs" role="tablist" id="tabs">
+    <button data-tab="uebersicht" aria-selected="true">Übersicht</button>
+    <button data-tab="posten" aria-selected="false">Wiederkehrend</button>
+    <button data-tab="vorhaben" aria-selected="false">Vorhaben</button>
+    <button data-tab="buchungen" aria-selected="false">Buchungen</button>
+    <button data-tab="rat" aria-selected="false">Ratgeber</button>
+  </nav>
+  <main id="view"></main>
+</div>
+<div id="sheet"></div>
+<script>
+// ---------- Vorschau ohne Server: Beispieldaten im Speicher, nichts wird gespeichert ----------
+(function () {
+  const M = (n) => { const d = new Date(); d.setMonth(d.getMonth() + n); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); };
+  const heute = new Date().toISOString().slice(0, 10);
+  const store = {
+    kassen: {
+      abteilung: { name: "Abteilung Fußball", saldo: 12400, stichtag: heute, reserve: 4000, bestaetigt: true },
+      foerderverein: { name: "Förderverein", saldo: 7800, stichtag: heute, reserve: 1500, bestaetigt: true } },
+    posten: {
+      p1: { name: "Partnerbeiträge Bande und Trikot", typ: "einnahme", kasse: "abteilung", rhythmus: "jahr", betrag: 6400, start: M(3), kategorie: "Partner", sicherheit: "geplant", aktiv: true },
+      p2: { name: "Verbandsgebühren HFV", typ: "ausgabe", kasse: "abteilung", rhythmus: "halbjahr", betrag: 1450, start: M(1), kategorie: "Spielbetrieb & Verband", sicherheit: "fest", aktiv: true },
+      p3: { name: "Schiedsrichterkosten", typ: "ausgabe", kasse: "abteilung", rhythmus: "monatlich", betrag: 320, start: M(0), kategorie: "Schiedsrichter", sicherheit: "fest", aktiv: true, notiz: "Sommerpause fällt nicht raus, Durchschnitt" },
+      p4: { name: "Spieltagskasse Heimspiele", typ: "einnahme", kasse: "abteilung", rhythmus: "monatlich", betrag: 380, start: M(0), kategorie: "Spieltag & Kasse", sicherheit: "geplant", aktiv: true },
+      p5: { name: "Neue Trikotsätze Jugend", typ: "ausgabe", kasse: "abteilung", rhythmus: "plan", raten: [{ monat: M(2), betrag: 9000 }, { monat: M(14), betrag: 6000 }], kategorie: "Ausrüstung", sicherheit: "geplant", aktiv: true },
+      p6: { name: "Kerwe Überschuss", typ: "einnahme", kasse: "abteilung", rhythmus: "jahr", betrag: 3500, start: M(10), kategorie: "Feste & Events", sicherheit: "unsicher", aktiv: true },
+      p7: { name: "Mitgliedsbeiträge Förderverein", typ: "einnahme", kasse: "foerderverein", rhythmus: "jahr", betrag: 4600, start: M(3), kategorie: "Mitgliedsbeiträge", sicherheit: "fest", aktiv: true },
+      p8: { name: "Zuschuss Jugend an die Abteilung", typ: "transfer", kasse: "foerderverein", an: "abteilung", rhythmus: "jahr", betrag: 3000, start: M(4), kategorie: "Sonstiges", sicherheit: "geplant", aktiv: true } },
+    vorhaben: {
+      v1: { titel: "Ballwand am Kleinfeld", betrag: 9000, zuschuss: 3000, zuschussUnsicher: true, kasse: "abteilung", prio: 1, monat: M(6) },
+      v2: { titel: "Neue Jugendtore (2 Paar)", betrag: 4800, kasse: "foerderverein", prio: 2, monat: M(5) } },
+    buchungen: {}
+  };
+  const listeners = {};
+  const snap = c => ({ docs: Object.entries(store[c] || {}).map(([id, d]) => ({ id, exists: true, data: () => d })) });
+  const fire = c => setTimeout(() => (listeners[c] || []).forEach(f => f(snap(c))), 0);
+  const ref = (c, id) => ({ id, async set(d) { (store[c] = store[c] || {})[id] = d; fire(c); }, async delete() { delete store[c][id]; fire(c); },
+    async get() { return { id, exists: !!(store[c] || {})[id], data: () => store[c][id] }; } });
+  const db = { doc: p => { const [c, id] = p.split("/"); return ref(c, id); },
+    collection: c => ({ onSnapshot(next) { (listeners[c] = listeners[c] || []).push(next); fire(c); return () => {}; },
+      doc: id => ref(c, id || Math.random().toString(36).slice(2, 10)), async add(d) { const id = Math.random().toString(36).slice(2, 10); await ref(c, id).set(d); return { id }; } }) };
+  const user = { id: async () => "vorschau", can: async () => true, profiles: async () => ({}) };
+  const downloads = { save: async ({ filename, data }) => { const b = data instanceof Blob ? data : new Blob([data]); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = filename; document.body.appendChild(a); a.click(); setTimeout(() => a.remove(), 1000); return { status: "saved" }; } };
+  window.claude = { use: async n => ({ db, user, downloads })[n] || null };
+  document.addEventListener("DOMContentLoaded", () => {
+    const b = document.createElement("div"); b.className = "banner"; b.style.marginBottom = "12px";
+    b.textContent = "Vorschau mit Beispieldaten. Du kannst alles ausprobieren, nach dem Neuladen ist es wieder der Ausgangsstand. Der Ratgeber kommt mit der echten Version.";
+    const w = document.querySelector(".wrap"); w.insertBefore(b, document.getElementById("banner"));
+  });
+})();
+
+</script>
+<script>
+// ---------- Grundlagen ----------
+const KASSEN = [
+  {id:"abteilung", name:"Abteilung Fußball", farbe:"var(--s1)"},
+  {id:"foerderverein", name:"Förderverein", farbe:"var(--s2)"}
+];
+const RHYTHMEN = {monatlich:1, quartal:3, halbjahr:6, jahr:12, einmalig:0, plan:-1};
+const RH_TXT = {monatlich:"monatlich", quartal:"vierteljährlich", halbjahr:"halbjährlich", jahr:"jährlich", einmalig:"einmalig", plan:"nach Plan"};
+const KAT = {
+  einnahme:["Mitgliedsbeiträge","Partner","Spieltag & Kasse","Feste & Events","Zuschüsse","Spenden","Eigenanteile","Sonstiges"],
+  ausgabe:["Ausrüstung","Spielbetrieb & Verband","Schiedsrichter","Trainer & Übungsleiter","Platz & Anlage","Veranstaltungen","Versicherung & Gebühren","Sonstiges"]
+};
+const S = {kassen:{}, posten:[], buchungen:[], vorhaben:[], mode:"normal", tab:"uebersicht", horizon:24, preview:null, ready:false, dbOk:false, canWrite:true, me:null, names:{}};
+let db = null, userCap = null, sampleCap = null, dlCap = null;
+
+const $ = (s, el=document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const eur = (v, d=0) => (v<=-Math.pow(10,-d)/2?"−":"") + Math.abs(v).toLocaleString("de-DE",{minimumFractionDigits:d, maximumFractionDigits:d}) + " €";
+const eur2 = v => eur(v,2);
+const ym = d => d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+const addM = (m, n) => { const [y,mo] = m.split("-").map(Number); const d = new Date(y, mo-1+n, 1); return ym(d); };
+const diffM = (a, b) => { const [ya,ma]=a.split("-").map(Number), [yb,mb]=b.split("-").map(Number); return (yb-ya)*12 + (mb-ma); };
+const MON = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+const mTxt = m => { const [y,mo]=m.split("-").map(Number); return MON[mo-1] + " " + String(y).slice(2); };
+const mLong = m => { const [y,mo]=m.split("-").map(Number); return ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"][mo-1] + " " + y; };
+const NOW = ym(new Date());
+const kName = id => (KASSEN.find(k=>k.id===id)||{name:id}).name;
+
+// ---------- Rechenkern ----------
+// Liefert alle Zahlungen eines Postens im Zeitraum [from, to] als {monat, betrag, kasse}
+function occurrences(p, from, to) {
+  const out = [];
+  const sign = p.typ === "einnahme" ? 1 : -1;
+  const push = (m, b) => {
+    if (m < from || m > to) return;
+    if (p.typ === "transfer") {
+      out.push({monat:m, betrag:-b, kasse:p.kasse, p});
+      out.push({monat:m, betrag:b, kasse:p.an || "abteilung", p});
+    } else out.push({monat:m, betrag:sign*b, kasse:p.kasse, p});
+  };
+  if (p.rhythmus === "plan") { (p.raten||[]).forEach(r => push(r.monat, Number(r.betrag)||0)); return out; }
+  const step = RHYTHMEN[p.rhythmus] ?? 0;
+  if (!p.start) return out;
+  if (step === 0) { push(p.start, Number(p.betrag)||0); return out; }
+  let m = p.start; let guard = 0;
+  while (m <= to && guard++ < 600) { if (!p.ende || m <= p.ende) push(m, Number(p.betrag)||0); else break; m = addM(m, step); }
+  return out;
+}
+const zaehlt = (p, mode) => mode === "vorsicht" ? !(p.sicherheit === "unsicher" && p.typ === "einnahme") : true;
+
+// Ist-Stand je Kasse = Startsaldo + Buchungen ab Stichtag
+function istStand(kid) {
+  const k = S.kassen[kid] || {};
+  const st = k.stichtag || "1900-01-01";
+  return (Number(k.saldo)||0) + S.buchungen.filter(b => b.kasse===kid && b.datum >= st).reduce((s,b)=>s+(Number(b.betrag)||0),0);
+}
+// Wurde eine Fälligkeit im laufenden Monat schon gebucht?
+function schonGebucht(p, m) { return S.buchungen.some(b => b.postenId === p.id && (b.datum||"").slice(0,7) === m); }
+
+// Prognose: Monatsreihe je Kasse. extra = zusätzliche Einmalzahlungen [{monat,betrag,kasse}]
+function forecast(opts={}) {
+  const mode = opts.mode || S.mode, H = opts.horizon || S.horizon, extra = opts.extra || [];
+  const from = NOW, to = addM(NOW, H-1);
+  const months = Array.from({length:H}, (_,i)=>addM(NOW,i));
+  const flows = {}; KASSEN.forEach(k => flows[k.id] = months.map(()=>({ein:0, aus:0, items:[]})));
+  const add = (o) => { const i = diffM(from, o.monat); if (i<0||i>=H||!flows[o.kasse]) return; const f = flows[o.kasse][i];
+    if (o.betrag>=0) f.ein += o.betrag; else f.aus += -o.betrag; f.items.push(o); };
+  S.posten.filter(p => p.aktiv !== false && zaehlt(p, mode)).forEach(p => occurrences(p, from, to).forEach(o => { if (o.monat===NOW && schonGebucht(p, NOW)) return; add(o); }));
+  S.vorhaben.filter(v => v.eingeplant && v.monat && v.id !== opts.exclude).forEach(v => {
+    add({monat:v.monat, betrag:-(Number(v.betrag)||0), kasse:v.kasse, p:{name:v.titel, vorhaben:true}});
+    if (Number(v.zuschuss) && !(mode==="vorsicht" && v.zuschussUnsicher)) add({monat:v.zuschussMonat||v.monat, betrag:Number(v.zuschuss), kasse:v.kasse, p:{name:"Zuschuss: "+v.titel, vorhaben:true}});
+  });
+  extra.forEach(add);
+  const series = {};
+  KASSEN.forEach(k => { let s = istStand(k.id); series[k.id] = flows[k.id].map(f => (s += f.ein - f.aus)); });
+  const total = months.map((_,i)=>KASSEN.reduce((s,k)=>s+series[k.id][i],0));
+  return {months, flows, series, total};
+}
+const reserve = kid => Number((S.kassen[kid]||{}).reserve)||0;
+
+// Wann ist ein Vorhaben leistbar? Frühester Monat, ab dem die Kasse bis zum Horizontende über der Reserve bleibt.
+function leistbarAb(v, mode) {
+  const base = forecast({mode, horizon:S.horizon, exclude:v.id});
+  const ser = base.series[v.kasse]; const r = reserve(v.kasse);
+  const netto = (Number(v.betrag)||0) - (mode==="vorsicht" && v.zuschussUnsicher ? 0 : (Number(v.zuschuss)||0));
+  for (let i=0;i<base.months.length;i++) { let ok = true; for (let j=i;j<ser.length;j++) if (ser[j]-netto < r) { ok=false; break; } if (ok) return base.months[i]; }
+  return null;
+}
+
+// ---------- Daten ----------
+const COLS = ["kassen","posten","buchungen","vorhaben"];
+async function connect() {
+  try { db = await window.claude?.use?.("db"); } catch(e) { db = null; }
+  if (!db) { S.ready = true; S.dbOk = false; render(); return; }
+  S.dbOk = true;
+  try { userCap = await window.claude.use("user"); } catch(e) {}
+  try { S.me = userCap ? await userCap.id() : null; } catch(e) {}
+  try { const w = userCap ? await userCap.can("data.write") : null; if (w === false) S.canWrite = false; } catch(e) {}
+  let pending = new Set(COLS);
+  COLS.forEach(c => db.collection(c).onSnapshot(snap => {
+    const rows = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    if (c === "kassen") { S.kassen = {}; rows.forEach(r => S.kassen[r.id] = r); } else S[c] = rows;
+    pending.delete(c); if (!pending.size) S.ready = true;
+    if (S.ready) scheduleRender();
+  }, err => { if (err.code === "revoked") { S.canWrite = false; } scheduleRender(); }));
+  setTimeout(() => { if (!S.ready) { S.ready = true; scheduleRender(); } }, 6000);
+}
+let rT = null; function scheduleRender() { clearTimeout(rT); rT = setTimeout(render, 30); }
+
+async function save(col, id, data) {
+  if (!db || !S.canWrite) { toast("Speichern ist hier nicht möglich."); return false; }
+  const body = {...data, geaendert: new Date().toISOString(), von: S.me || null};
+  delete body.id;
+  try { if (id) await db.doc(col + "/" + id).set(body); else await db.collection(col).add(body); return true; }
+  catch(e) { if (e.code === "invalid_argument") { S.canWrite = false; toast("Du hast hier nur Leserechte."); } else if (e.code === "quota_exceeded") toast("Speicher voll. Bitte alte Buchungen löschen."); else toast("Speichern hat nicht geklappt. Bitte nochmal."); return false; }
+}
+async function remove(col, id) {
+  if (!db || !S.canWrite) return false;
+  try { await db.doc(col + "/" + id).delete(); return true; } catch(e) { toast("Löschen hat nicht geklappt."); return false; }
+}
+async function nameOf(id) {
+  if (!id || !userCap) return "";
+  if (S.names[id] !== undefined) return S.names[id];
+  try { const ps = await userCap.profiles([id]); S.names[id] = (ps[id] && ps[id].name) || ""; } catch(e) { S.names[id] = ""; }
+  return S.names[id];
+}
+function toast(msg) {
+  const t = document.createElement("div"); t.textContent = msg;
+  t.style.cssText = "position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;z-index:20;font-size:14px;max-width:90vw";
+  document.body.appendChild(t); setTimeout(() => t.remove(), 3200);
+}
+
+// ---------- Hinweise (regelbasiert, sofort) ----------
+function hinweise(fc) {
+  const out = [];
+  KASSEN.forEach(k => {
+    const ser = fc.series[k.id], r = reserve(k.id), ok = (S.kassen[k.id]||{}).bestaetigt;
+    const minV = Math.min(...ser), iMin = ser.indexOf(minV);
+    const under = fc.months.filter((m,i)=>ser[i] < r);
+    if (!ok) { if (minV < 0) out.push({t:"warn", ic:"Puffer", h:`${k.name}: bis ${mLong(fc.months[iMin])} müssen ${eur(-minV)} vorhanden sein.`, s:"So viel geht vorübergehend mehr raus als reinkommt. Mit eingetragenem Kontostand siehst du, ob es reicht."}); return; }
+    if (minV < 0) out.push({t:"bad", ic:"Achtung", h:`${k.name}: im ${mLong(fc.months[iMin])} im Minus (${eur(minV)}).`, s:"Zahlungen schieben, Zuschuss vom Förderverein einplanen oder Vorhaben später ansetzen."});
+    else if (under.length) out.push({t:"warn", ic:"Reserve", h:`${k.name}: ${under.length} ${under.length===1?"Monat":"Monate"} unter der Reserve von ${eur(r)}, zuerst ${mLong(under[0])}.`, s:`Tiefster Stand ${eur(minV)} im ${mLong(fc.months[iMin])}.`});
+    else out.push({t:"good", ic:"Stabil", h:`${k.name}: immer über der Reserve. Tiefster Stand ${eur(minV)} im ${mLong(fc.months[iMin])}.`, s:""});
+  });
+  // Förderverein kann helfen?
+  const fv = fc.series.foerderverein, ab = fc.series.abteilung;
+  const fvFrei = Math.min(...fv) - reserve("foerderverein");
+  if ((S.kassen.foerderverein||{}).bestaetigt && Math.min(...ab) < reserve("abteilung") && fvFrei > 0) out.push({t:"warn", ic:"Tipp", h:`Der Förderverein hätte über den ganzen Zeitraum ${eur(fvFrei)} frei.`, s:"Ein Zuschuss an die Abteilung würde die Lücke schließen. Lege ihn unter Wiederkehrend als Zuschuss an."});
+  // Kassenstand nicht gepflegt
+  KASSEN.forEach(k => { const kk = S.kassen[k.id]; if (!kk || !kk.bestaetigt) out.unshift({t:"warn", ic:"Start", h:`Kontostand ${k.name} fehlt noch.`, s:"Trag den aktuellen Kontostand ein, sonst startet die Prognose bei 0 €.", act:"kasse:"+k.id}); });
+  return out;
+}
+
+function monatsSchnitt(kid, typ, mode) {
+  const fc = forecast({mode, horizon:12});
+  const f = fc.flows[kid]; return f.reduce((s,x)=>s+(typ==="ein"?x.ein:x.aus),0)/12;
+}
+
+// ---------- Übersicht ----------
+function viewUebersicht() {
+  const fc = forecast();
+  const nachher = S.preview ? forecast({extra:S.preview.extra}) : null;
+  const ist = KASSEN.map(k => istStand(k.id)), ges = ist.reduce((a,b)=>a+b,0);
+  const end = fc.total[fc.total.length-1];
+  const next3 = naechsteZahlungen(fc, 5);
+  const ein = KASSEN.reduce((s,k)=>s+monatsSchnitt(k.id,"ein",S.mode),0), aus = KASSEN.reduce((s,k)=>s+monatsSchnitt(k.id,"aus",S.mode),0);
+  let h = `<div class="grid g4 kp3">
+    <div class="card kpi"><div class="lbl">Heute gesamt</div><div class="z">${eur(ges)}</div><div class="d">${KASSEN.map((k,i)=>`<span class="dot" style="background:${k.farbe}"></span>${esc(k.name.split(" ")[0])} ${eur(ist[i])}`).join("<br>")}</div></div>
+    <div class="card kpi"><div class="lbl">In ${S.horizon} Monaten</div><div class="z">${eur(end)}</div><div class="d ${end-ges>=0?"pos":"neg"}">${end-ges>=0?"+":""}${eur(end-ges)} gegenüber heute</div></div>
+    <div class="card kpi"><div class="lbl">Pro Monat, nächste 12</div><div class="z">${eur(ein-aus)}</div><div class="d">${eur(ein)} rein · ${eur(aus)} raus</div></div>
+  </div>`;
+  h += `<div class="card" style="margin-top:12px">
+    <div class="row" style="margin-bottom:6px"><h2 style="margin:0">Kontostand-Prognose</h2><span class="sp"></span>
+      <div class="row hz">${[12,24,36].map(n=>`<button class="chip" data-h="${n}" aria-pressed="${S.horizon===n}">${n} Mon.</button>`).join("")}</div></div>
+    ${S.preview ? `<div class="note warn" style="margin-bottom:8px"><span class="ic">Vorschau</span><span>Gestrichelt: mit „${esc(S.preview.titel)}“. <button class="ghost" data-act="endpreview">Vorschau beenden</button></span></div>` : ""}
+    <div class="chartbox" id="chart">${chartSvg(fc, nachher)}</div>
+    <div class="legend">${KASSEN.map(k=>`<span><span class="sw" style="background:${k.farbe}"></span>${esc(k.name)}</span>`).join("")}<span><span class="sw" style="background:var(--muted);height:0;border-top:2px dashed var(--muted)"></span>Reserve</span></div>
+  </div>`;
+  h += `<div class="grid g2" style="margin-top:12px">
+    <div class="card"><h2>Was auffällt</h2><div class="grid" style="gap:8px">${hinweise(fc).map(n=>`<div class="note ${n.t}"><span class="ic">${n.ic}</span><span><b>${esc(n.h)}</b>${n.s?`<br>${esc(n.s)}`:""}${n.act?` <button class="ghost" data-act="${n.act}">Jetzt eintragen</button>`:""}</span></div>`).join("")}</div></div>
+    <div class="card"><h2>Als Nächstes fällig</h2>${next3.length?`<div class="list">${next3.map(o=>`<div class="item" data-edit="${o.p.id||""}"><span class="n">${esc(o.p.name)}<span class="tag">${esc(kName(o.kasse).split(" ")[0])}</span></span><span class="a ${o.betrag>=0?"pos":""}">${o.betrag>=0?"+":""}${eur(o.betrag)}</span><span class="m">${mLong(o.monat)}</span></div>`).join("")}</div>`:`<div class="empty">Noch nichts geplant.</div>`}</div>
+  </div>`;
+  h += `<div class="card" style="margin-top:12px"><div class="row"><h2 style="margin:0">Kassen</h2><span class="sp"></span><span class="small">Kontostand und Mindestreserve</span></div>
+    <div class="list" style="margin-top:6px">${KASSEN.map(k=>{const kk=S.kassen[k.id]||{};return `<div class="item" data-act="kasse:${k.id}"><span class="n"><span class="dot" style="background:${k.farbe}"></span>${esc(k.name)}</span><span class="a">${eur(istStand(k.id))}</span><span class="m">${kk.bestaetigt?`Stand ${eur(Number(kk.saldo)||0)} am ${fmtD(kk.stichtag)} plus Buchungen seitdem`:"Kontostand noch nicht eingetragen"} · Reserve ${eur(reserve(k.id))}</span></div>`}).join("")}</div></div>`;
+  return h;
+}
+const fmtD = d => d ? d.split("-").reverse().join(".") : "";
+function naechsteZahlungen(fc, n) {
+  const all = []; KASSEN.forEach(k => fc.flows[k.id].forEach(f => f.items.forEach(o => { if (!(o.p.typ==="transfer" && o.betrag>0)) all.push(o); })));
+  return all.sort((a,b)=> a.monat<b.monat?-1:a.monat>b.monat?1:Math.abs(b.betrag)-Math.abs(a.betrag)).slice(0,n);
+}
+
+// ---------- Diagramm (SVG, eine Achse) ----------
+function chartSvg(fc, alt) {
+  const W=CW(), H=W<500?260:300, L=64, R=16, T=16, B=34, n=fc.months.length;
+  const vals = []; KASSEN.forEach(k => { vals.push(...fc.series[k.id], reserve(k.id)); if (alt) vals.push(...alt.series[k.id]); });
+  let lo = Math.min(0, ...vals), hi = Math.max(...vals, 1);
+  const step = niceStep((hi-lo)/4); lo = Math.floor(lo/step)*step; hi = Math.ceil(hi/step)*step; if (hi===lo) hi = lo+step;
+  const x = i => L + (n<=1?0:i*(W-L-R)/(n-1)), y = v => T + (hi-v)*(H-T-B)/(hi-lo);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Kontostand-Prognose je Kasse für ${n} Monate">`;
+  for (let v=lo; v<=hi+1e-6; v+=step) s += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="${v===0?"var(--muted)":"var(--grid)"}" stroke-width="1"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="12" fill="var(--muted)">${kurz(v)}</text>`;
+  const every = Math.max(1, Math.ceil(n / Math.floor((W-L-R)/58)));
+  fc.months.forEach((m,i)=>{ if (i%every===0) s += `<text x="${x(i)}" y="${H-12}" text-anchor="middle" font-size="12" fill="var(--muted)">${mTxt(m)}</text>`; });
+  KASSEN.forEach(k => { const r = reserve(k.id); if (r>0) s += `<line x1="${L}" x2="${W-R}" y1="${y(r)}" y2="${y(r)}" stroke="${k.farbe}" stroke-opacity=".55" stroke-width="1.5" stroke-dasharray="2 4"/>`; });
+  const path = ser => ser.map((v,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join("");
+  KASSEN.forEach(k => {
+    if (alt) s += `<path d="${path(alt.series[k.id])}" fill="none" stroke="${k.farbe}" stroke-width="2" stroke-dasharray="6 5"/>`;
+    s += `<path d="${path(fc.series[k.id])}" fill="none" stroke="${k.farbe}" stroke-width="2.5" stroke-linejoin="round" ${alt?'stroke-opacity=".45"':""}/>`;
+    const last = fc.series[k.id][n-1]; s += `<circle cx="${x(n-1)}" cy="${y(last)}" r="4" fill="${k.farbe}" stroke="var(--surface)" stroke-width="2"/>`;
+  });
+  s += `<line id="cx" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="var(--muted)" stroke-width="1" visibility="hidden"/>`;
+  s += `<rect id="hit" x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" fill="transparent"/>`;
+  return s + `</svg><div class="tip" id="tip" hidden></div>`;
+}
+function CW() { const v = document.getElementById('view'); const w = v ? v.clientWidth - 30 : 760; return Math.max(320, Math.min(760, Math.round(w))); }
+function niceStep(raw) { const p = Math.pow(10, Math.floor(Math.log10(Math.max(raw,1)))); const f = raw/p; return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p; }
+function kurz(v) { const a = Math.abs(v); return (v<0?"−":"") + (a>=1000 ? (a/1000).toLocaleString("de-DE",{maximumFractionDigits:1})+" T€" : a+" €"); }
+function wireChart(fc) {
+  const box = $("#chart"); if (!box) return; const svg = $("svg", box), hit = $("#hit", box), tip = $("#tip", box), cx = $("#cx", box);
+  const n = fc.months.length, W=CW(), L=64, R=16;
+  const show = ev => {
+    const r = svg.getBoundingClientRect(); const px = (ev.clientX - r.left) * W / r.width;
+    const i = Math.max(0, Math.min(n-1, Math.round((px-L)/((W-L-R)/(n-1||1)))));
+    const xx = L + i*(W-L-R)/(n-1||1);
+    cx.setAttribute("x1", xx); cx.setAttribute("x2", xx); cx.setAttribute("visibility","visible");
+    const rows = KASSEN.map(k => { const f = fc.flows[k.id][i]; return `<div><span class="dot" style="background:${k.farbe}"></span>${esc(k.name.split(" ")[0])}: <b>${eur(fc.series[k.id][i])}</b><br><span style="opacity:.75">+${eur(f.ein)} / −${eur(f.aus)}</span></div>`; }).join("");
+    tip.innerHTML = `<b>${mLong(fc.months[i])}</b>${rows}`; tip.hidden = false;
+    tip.style.left = Math.min(Math.max((xx/W)*r.width, 95), r.width-95) + "px"; tip.style.top = "40px";
+  };
+  hit.addEventListener("pointermove", show); hit.addEventListener("pointerdown", show);
+  hit.addEventListener("pointerleave", () => { tip.hidden = true; cx.setAttribute("visibility","hidden"); });
+}
+
+// ---------- Wiederkehrend ----------
+function postenBetragTxt(p) {
+  if (p.rhythmus === "plan") { const sum = (p.raten||[]).reduce((s,r)=>s+(Number(r.betrag)||0),0); return eur(sum) + " in " + (p.raten||[]).length + " Raten"; }
+  return eur(Number(p.betrag)||0, (Number(p.betrag)%1)?2:0) + " " + RH_TXT[p.rhythmus];
+}
+function proJahr(p) {
+  const y0 = NOW, y1 = addM(NOW, 11);
+  return occurrences(p, y0, y1).filter(o => o.kasse === p.kasse).reduce((s,o)=>s+o.betrag,0);
+}
+function viewPosten() {
+  let h = `<div class="row" style="margin-bottom:10px"><p class="small" style="margin:0;flex:1;min-width:220px">Einmal anlegen, die Prognose rechnet alles automatisch fort. Zuschüsse vom Förderverein an die Abteilung als „Zuschuss“ anlegen.</p>
+    ${S.canWrite && S.dbOk ? `<button class="primary" data-act="neu-posten">+ Neuer Posten</button>` : ""}</div>`;
+  KASSEN.forEach(k => {
+    const ps = S.posten.filter(p => p.kasse === k.id);
+    const typen = [["einnahme","Einnahmen"],["ausgabe","Ausgaben"],["transfer","Zuschüsse an andere Kasse"]];
+    h += `<div class="card" style="margin-bottom:12px"><h2><span class="dot" style="background:${k.farbe}"></span>${esc(k.name)}</h2>`;
+    let any = false;
+    typen.forEach(([t, titel]) => {
+      const list = ps.filter(p => p.typ === t).sort((a,b)=>Math.abs(proJahr(b))-Math.abs(proJahr(a)));
+      if (!list.length) return; any = true;
+      const summe = list.reduce((s,p)=>s+proJahr(p),0);
+      h += `<div class="row" style="margin-top:10px"><h3>${titel}</h3><span class="sp"></span><span class="small">nächste 12 Monate: <b class="${summe>=0?"pos":"neg"}">${eur(summe)}</b></span></div><div class="list">`;
+      list.forEach(p => {
+        const j = proJahr(p);
+        h += `<div class="item" data-edit="${p.id}"><span class="n">${esc(p.name)}${p.sicherheit==="unsicher"?`<span class="tag unsicher">unsicher</span>`:p.sicherheit==="geplant"?`<span class="tag geplant">geplant</span>`:""}${p.aktiv===false?`<span class="tag">pausiert</span>`:""}</span>
+          <span class="a ${p.typ==="einnahme"?"pos":""}">${p.typ==="einnahme"?"+":"−"}${p.rhythmus==="plan"?eur(Math.abs((p.raten||[]).reduce((s,r)=>s+(Number(r.betrag)||0),0))):eur(Math.abs(Number(p.betrag)||0),(Number(p.betrag)%1)?2:0)}</span>
+          <span class="m">${esc(postenBetragTxt(p))} · ${esc(p.kategorie||"")}${p.typ==="transfer"?" an "+esc(kName(p.an)):""}${j?` · ${eur(Math.abs(j))} in 12 Mon.`:""}${p.notiz?` · ${esc(p.notiz)}`:""}</span></div>`;
+      });
+      h += `</div>`;
+    });
+    if (!any) h += `<div class="empty">Noch keine Posten. Typisch sind Mitgliedsbeiträge, Partnerbeiträge, Verbandsgebühren, Schiedsrichter und Platzkosten.</div>`;
+    h += `</div>`;
+  });
+  return h;
+}
+
+// ---------- Formular: Posten ----------
+function sheetPosten(p) {
+  const neu = !p; p = p ? {...p} : {typ:"ausgabe", kasse:"abteilung", rhythmus:"monatlich", start:NOW, sicherheit:"fest", kategorie:"Sonstiges", raten:[]};
+  const kats = KAT[p.typ==="transfer"?"ausgabe":p.typ] || KAT.ausgabe;
+  const ratenTxt = (p.raten||[]).map(r => `${r.monat}: ${String(r.betrag).replace(".",",")}`).join("\n");
+  openSheet(`<h2>${neu?"Neuer Posten":"Posten bearbeiten"}</h2>
+  <div class="fgrid">
+    <div class="full seg" id="fTyp">${[["einnahme","Einnahme"],["ausgabe","Ausgabe"],["transfer","Zuschuss"]].map(([v,t])=>`<button type="button" data-v="${v}" aria-pressed="${p.typ===v}">${t}</button>`).join("")}</div>
+    <label class="f full">Bezeichnung<input id="fName" value="${esc(p.name||"")}" placeholder="z.B. Verbandsbeiträge HFV"></label>
+    <label class="f">Kasse<select id="fKasse">${KASSEN.map(k=>`<option value="${k.id}" ${p.kasse===k.id?"selected":""}>${k.name}</option>`).join("")}</select></label>
+    <label class="f" id="wAn" ${p.typ==="transfer"?"":"hidden"}>an Kasse<select id="fAn">${KASSEN.map(k=>`<option value="${k.id}" ${(p.an||"abteilung")===k.id?"selected":""}>${k.name}</option>`).join("")}</select></label>
+    <label class="f">Kategorie<select id="fKat">${kats.map(c=>`<option ${p.kategorie===c?"selected":""}>${c}</option>`).join("")}</select></label>
+    <label class="f">Rhythmus<select id="fRh">${Object.keys(RH_TXT).map(r=>`<option value="${r}" ${p.rhythmus===r?"selected":""}>${RH_TXT[r]}</option>`).join("")}</select></label>
+    <label class="f wNorm">Betrag in €<input id="fBetrag" inputmode="decimal" value="${p.betrag!=null?String(p.betrag).replace(".",","):""}" placeholder="0,00"></label>
+    <label class="f wNorm">Erster Monat<input id="fStart" type="month" value="${esc(p.start||NOW)}"></label>
+    <label class="f wNorm wEnde">Letzter Monat (leer = offen)<input id="fEnde" type="month" value="${esc(p.ende||"")}"></label>
+    <label class="f full wPlan">Raten, eine pro Zeile: Monat: Betrag<textarea id="fRaten" rows="4" placeholder="2027-03: 14345,70">${esc(ratenTxt)}</textarea></label>
+    <label class="f">Sicherheit<select id="fSich">${[["fest","fest zugesagt"],["geplant","geplant"],["unsicher","unsicher"]].map(([v,t])=>`<option value="${v}" ${p.sicherheit===v?"selected":""}>${t}</option>`).join("")}</select></label>
+    <label class="f">Status<select id="fAktiv"><option value="1" ${p.aktiv!==false?"selected":""}>aktiv</option><option value="0" ${p.aktiv===false?"selected":""}>pausiert</option></select></label>
+    <label class="f full">Notiz<input id="fNotiz" value="${esc(p.notiz||"")}" placeholder="optional"></label>
+  </div>
+  <p class="small" id="fInfo"></p>
+  <div class="row" style="margin-top:12px">${!neu?`<button class="ghost" id="fDel" style="color:var(--bad)">Löschen</button>`:""}<span class="sp"></span><button id="fCancel">Abbrechen</button><button class="primary" id="fSave">Speichern</button></div>`);
+  let typ = p.typ;
+  const sync = () => {
+    const rh = $("#fRh").value;
+    document.querySelectorAll(".wNorm").forEach(e => e.hidden = rh === "plan");
+    $(".wEnde").hidden = rh === "plan" || rh === "einmalig";
+    $(".wPlan").hidden = rh !== "plan";
+    $("#wAn").hidden = typ !== "transfer";
+    const tmp = readForm(); const j = tmp ? proJahr(tmp) : 0;
+    $("#fInfo").textContent = tmp && j ? `Wirkt in den nächsten 12 Monaten mit ${eur(Math.abs(j))} auf ${kName(tmp.kasse)}.` : "";
+  };
+  const readForm = () => {
+    const o = {...p, typ, name:$("#fName").value.trim(), kasse:$("#fKasse").value, an: typ==="transfer"?$("#fAn").value:null, kategorie:$("#fKat").value, rhythmus:$("#fRh").value,
+      betrag: parseNum($("#fBetrag").value), start:$("#fStart").value||NOW, ende:$("#fEnde").value||null, sicherheit:$("#fSich").value, aktiv:$("#fAktiv").value==="1", notiz:$("#fNotiz").value.trim()};
+    if (o.rhythmus === "plan") o.raten = $("#fRaten").value.split("\n").map(l => { const m = l.match(/(\d{4}-\d{2})\s*[:;]?\s*(-?[\d.,]+)/); return m ? {monat:m[1], betrag:parseNum(m[2])} : null; }).filter(Boolean);
+    if (o.rhythmus === "einmalig") o.ende = null;
+    return o;
+  };
+  $("#fTyp").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; typ = b.dataset.v;
+    $("#fTyp").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x===b));
+    $("#fKat").innerHTML = (KAT[typ==="transfer"?"ausgabe":typ]).map(c=>`<option>${c}</option>`).join(""); if (typ==="transfer") $("#fKat").value = "Sonstiges"; sync(); });
+  $("#sheet .panel").addEventListener("input", sync); sync();
+  $("#fCancel").onclick = closeSheet;
+  $("#fSave").onclick = async () => { const o = readForm(); if (!o.name) { $("#fName").focus(); return; } if (o.rhythmus!=="plan" && !o.betrag) { $("#fBetrag").focus(); return; }
+    if (o.typ==="transfer" && o.an===o.kasse) { toast("Zuschuss braucht zwei verschiedene Kassen."); return; }
+    $("#fSave").disabled = true; if (await save("posten", neu?null:p.id, o)) closeSheet(); else $("#fSave").disabled = false; };
+  if (!neu) confirmDelete($("#fDel"), () => remove("posten", p.id));
+}
+function parseNum(v) { if (v==null) return 0; v = String(v).trim().replace(/\s|€/g,""); if (/,\d{1,2}$/.test(v) || v.includes(",")) v = v.replace(/\./g,"").replace(",","."); const n = parseFloat(v); return isNaN(n)?0:Math.round(n*100)/100; }
+function confirmDelete(btn, fn) {
+  let armed = false; btn.onclick = async () => { if (!armed) { armed = true; btn.textContent = "Wirklich löschen?"; setTimeout(()=>{armed=false; btn.textContent="Löschen";}, 4000); return; } if (await fn()) closeSheet(); };
+}
+function openSheet(html) { $("#sheet").innerHTML = `<div class="sheet"><div class="panel" role="dialog" aria-modal="true">${html}</div></div>`; $("#sheet .sheet").addEventListener("click", e => { if (e.target.classList.contains("sheet")) closeSheet(); }); }
+function closeSheet() { $("#sheet").innerHTML = ""; }
+
+// ---------- Formular: Kasse ----------
+function sheetKasse(kid) {
+  const k = {...(S.kassen[kid]||{})};
+  openSheet(`<h2>${esc(kName(kid))}</h2>
+  <div class="fgrid">
+    <label class="f">Kontostand in €<input id="kSaldo" inputmode="decimal" value="${k.saldo!=null?String(k.saldo).replace(".",","):""}" placeholder="0,00"></label>
+    <label class="f">am<input id="kDat" type="date" value="${esc(k.stichtag||new Date().toISOString().slice(0,10))}"></label>
+    <label class="f full">Mindestreserve in €<input id="kRes" inputmode="decimal" value="${k.reserve!=null?String(k.reserve).replace(".",","):""}" placeholder="z.B. 3000"></label>
+  </div>
+  <p class="small">Buchungen ab diesem Tag werden automatisch dazugerechnet. Die Reserve ist der Betrag, unter den die Kasse nie fallen soll.</p>
+  <div class="row"><span class="sp"></span><button id="kC">Abbrechen</button><button class="primary" id="kS">Speichern</button></div>`);
+  $("#kC").onclick = closeSheet;
+  $("#kS").onclick = async () => { $("#kS").disabled = true;
+    if (await save("kassen", kid, {...k, name:kName(kid), saldo:parseNum($("#kSaldo").value), stichtag:$("#kDat").value, reserve:parseNum($("#kRes").value), bestaetigt:true})) closeSheet(); else $("#kS").disabled = false; };
+}
+
+// ---------- Vorhaben / Investitionsplaner ----------
+function viewVorhaben() {
+  let h = `<div class="row" style="margin-bottom:10px"><p class="small" style="margin:0;flex:1;min-width:220px">Was wollt ihr anschaffen? Das Tool sagt, ab wann es geht, ohne unter die Reserve zu fallen. „Vorschau“ zeigt es im Diagramm, „Einplanen“ nimmt es fest in die Prognose.</p>
+    ${S.canWrite && S.dbOk ? `<button class="primary" data-act="neu-vorhaben">+ Neues Vorhaben</button>` : ""}</div>`;
+  const list = [...S.vorhaben].sort((a,b)=>(a.prio||9)-(b.prio||9));
+  if (!list.length) return h + `<div class="card empty">Noch keine Vorhaben. Beispiele: Ballwand, neue Tore für die Jugend, Flutlicht auf LED, Vereinsbus, Bewässerung.</div>`;
+  h += `<div class="card"><div class="list">`;
+  list.forEach(v => {
+    const ab = leistbarAb(v, S.mode);
+    const netto = (Number(v.betrag)||0) - (Number(v.zuschuss)||0);
+    let status;
+    if (v.eingeplant) {
+      const okAb = ab && v.monat >= ab;
+      status = okAb ? `<span class="pos">Eingeplant für ${mLong(v.monat)}, passt.</span>` : `<span class="neg">Eingeplant für ${mLong(v.monat)}, reißt die Reserve.${ab?` Machbar ab ${mLong(ab)}.`:""}</span>`;
+    } else status = ab ? (ab===NOW ? `<span class="pos">Jetzt schon machbar.</span>` : `Machbar ab <b>${mLong(ab)}</b>.`) : `<span class="neg">Im Zeitraum nicht machbar, ohne die Reserve zu reißen.</span>`;
+    h += `<div class="vrow"><div style="min-width:0"><div class="n" style="font-weight:600;color:var(--ink)">${v.prio?`<span class="tag">Prio ${v.prio}</span> `:""}${esc(v.titel)}</div>
+        <div class="small">${esc(kName(v.kasse))} · ${eur(Number(v.betrag)||0)}${Number(v.zuschuss)?` · Zuschuss ${eur(Number(v.zuschuss))}${v.zuschussUnsicher?" (unsicher)":""}, netto ${eur(netto)}`:""}</div>
+        <div style="margin-top:4px">${status}</div>${v.notiz?`<div class="small">${esc(v.notiz)}</div>`:""}</div>
+      <div class="row" style="justify-content:flex-end;align-content:flex-start">
+        <button class="chip" data-prev="${v.id}">Vorschau</button>
+        ${S.canWrite&&S.dbOk?`<button class="chip" data-plan="${v.id}" aria-pressed="${!!v.eingeplant}">${v.eingeplant?"Eingeplant":"Einplanen"}</button><button class="ghost" data-vedit="${v.id}">Bearbeiten</button>`:""}
+      </div></div>`;
+  });
+  return h + `</div></div><p class="small">Zuschüsse (z.B. Landessportbund, Gemeinde, Kreis) als eigenen Betrag eintragen, dann rechnet das Tool netto. Der Ratgeber kann passende Förderprogramme nennen.</p>`;
+}
+function sheetVorhaben(v) {
+  const neu = !v; v = v ? {...v} : {kasse:"abteilung", prio:2, monat:addM(NOW,3)};
+  openSheet(`<h2>${neu?"Neues Vorhaben":"Vorhaben bearbeiten"}</h2>
+  <div class="fgrid">
+    <label class="f full">Was<input id="vT" value="${esc(v.titel||"")}" placeholder="z.B. Ballwand am Kleinfeld"></label>
+    <label class="f">Kosten in €<input id="vB" inputmode="decimal" value="${v.betrag!=null?String(v.betrag).replace(".",","):""}"></label>
+    <label class="f">Kasse<select id="vK">${KASSEN.map(k=>`<option value="${k.id}" ${v.kasse===k.id?"selected":""}>${k.name}</option>`).join("")}</select></label>
+    <label class="f">Wunschmonat<input id="vM" type="month" value="${esc(v.monat||"")}"></label>
+    <label class="f">Priorität<select id="vP">${[1,2,3].map(n=>`<option ${Number(v.prio)===n?"selected":""}>${n}</option>`).join("")}</select></label>
+    <label class="f">Zuschuss in €<input id="vZ" inputmode="decimal" value="${v.zuschuss?String(v.zuschuss).replace(".",","):""}" placeholder="optional"></label>
+    <label class="f">Zuschuss sicher?<select id="vZU"><option value="0" ${!v.zuschussUnsicher?"selected":""}>zugesagt</option><option value="1" ${v.zuschussUnsicher?"selected":""}>beantragt / unsicher</option></select></label>
+    <label class="f full">Notiz<input id="vN" value="${esc(v.notiz||"")}"></label>
+  </div>
+  <div class="row" style="margin-top:12px">${!neu?`<button class="ghost" id="vDel" style="color:var(--bad)">Löschen</button>`:""}<span class="sp"></span><button id="vC">Abbrechen</button><button class="primary" id="vS">Speichern</button></div>`);
+  $("#vC").onclick = closeSheet;
+  $("#vS").onclick = async () => { const o = {...v, titel:$("#vT").value.trim(), betrag:parseNum($("#vB").value), kasse:$("#vK").value, monat:$("#vM").value||null, prio:Number($("#vP").value), zuschuss:parseNum($("#vZ").value), zuschussUnsicher:$("#vZU").value==="1", notiz:$("#vN").value.trim()};
+    if (!o.titel || !o.betrag) { toast("Bitte Bezeichnung und Kosten eintragen."); return; }
+    $("#vS").disabled = true; if (await save("vorhaben", neu?null:v.id, o)) closeSheet(); else $("#vS").disabled = false; };
+  if (!neu) confirmDelete($("#vDel"), () => remove("vorhaben", v.id));
+}
+function previewVorhaben(v) {
+  const extra = [{monat:v.monat||leistbarAb(v,S.mode)||NOW, betrag:-(Number(v.betrag)||0), kasse:v.kasse, p:{name:v.titel}}];
+  if (Number(v.zuschuss) && !(S.mode==="vorsicht"&&v.zuschussUnsicher)) extra.push({monat:extra[0].monat, betrag:Number(v.zuschuss), kasse:v.kasse, p:{name:"Zuschuss"}});
+  S.preview = v.eingeplant ? null : {titel:v.titel, extra}; S.tab = "uebersicht"; render(); window.scrollTo({top:0, behavior:"smooth"});
+}
+
+// ---------- Buchungen & Import ----------
+let IMP = null; // laufender Import {kasse, rows:[...]}
+function viewBuchungen() {
+  let h = "";
+  if (S.canWrite && S.dbOk) h += `<div class="card" style="margin-bottom:12px"><h2>Kontoauszug einlesen</h2>
+    <p class="small" style="margin-top:0">CSV aus dem Online-Banking der Sparkasse (Umsätze, Export „CSV-CAMT“). Doppelte Buchungen werden erkannt und übersprungen.</p>
+    <div class="row" style="margin-bottom:8px"><span class="lbl">In Kasse</span><div class="seg" id="impK">${KASSEN.map((k,i)=>`<button data-k="${k.id}" aria-pressed="${(IMP?.kasse||"abteilung")===k.id}">${k.name}</button>`).join("")}</div></div>
+    <label class="drop" id="drop"><input type="file" id="csv" accept=".csv,text/csv" hidden>CSV-Datei hier ablegen oder <u>auswählen</u></label>
+    ${IMP ? impPreview() : ""}</div>`;
+  const vor = vorschlaege();
+  if (vor.length && S.canWrite) h += `<div class="card" style="margin-bottom:12px"><h2>Wiederkehrend erkannt</h2><p class="small" style="margin-top:0">Diese Zahlungen kommen regelmäßig, sind aber noch kein Posten.</p><div class="list">${vor.map((v,i)=>`<div class="item" style="cursor:default"><span class="n">${esc(v.name)}</span><span class="a ${v.betrag>=0?"pos":""}">${eur(v.betrag,2)}</span><span class="m">${v.n}× · etwa ${RH_TXT[v.rhythmus]} · ${esc(kName(v.kasse))} <button class="chip" data-vor="${i}">Als Posten übernehmen</button></span></div>`).join("")}</div></div>`;
+  const list = [...S.buchungen].sort((a,b)=>a.datum<b.datum?1:-1);
+  h += `<div class="card"><div class="row"><h2 style="margin:0">Buchungen</h2><span class="sp"></span><span class="small">${list.length} insgesamt</span>${dlCap?`<button class="ghost" data-act="export">Export CSV</button>`:""}</div>`;
+  if (!list.length) return h + `<div class="empty">Noch keine Buchungen. Lies einen Kontoauszug ein, dann vergleicht das Tool Plan und Ist.</div></div>`;
+  h += `<div class="scroll"><table><thead><tr><th>Datum</th><th>Text</th><th>Kategorie</th><th>Kasse</th><th class="num">Betrag</th></tr></thead><tbody>${list.slice(0,200).map(b=>`<tr><td>${fmtD(b.datum)}</td><td>${esc(b.text)}</td><td>${esc(b.kategorie||"")}</td><td>${esc(kName(b.kasse).split(" ")[0])}</td><td class="num ${b.betrag>=0?"pos":""}">${eur2(b.betrag)}</td></tr>`).join("")}</tbody></table></div>${list.length>200?`<p class="small">Die neuesten 200 werden angezeigt.</p>`:""}</div>`;
+  return h;
+}
+function impPreview() {
+  const neu = IMP.rows.filter(r=>!r.dup);
+  return `<div style="margin-top:12px"><div class="row"><b>${neu.length} neue Buchungen</b><span class="small">${IMP.rows.length-neu.length} schon vorhanden</span><span class="sp"></span><button class="ghost" data-act="imp-abbruch">Verwerfen</button><button class="primary" data-act="imp-ok" ${neu.length?"":"disabled"}>Übernehmen</button></div>
+  <div class="scroll" style="max-height:340px;overflow:auto;margin-top:8px"><table><thead><tr><th>Datum</th><th>Text</th><th>Zuordnung</th><th class="num">Betrag</th></tr></thead><tbody>
+  ${neu.slice(0,300).map((r,i)=>`<tr><td>${fmtD(r.datum)}</td><td>${esc(r.text)}</td><td><select data-ri="${IMP.rows.indexOf(r)}" style="min-width:150px">${kOpts(r)}</select></td><td class="num ${r.betrag>=0?"pos":""}">${eur2(r.betrag)}</td></tr>`).join("")}
+  </tbody></table></div></div>`;
+}
+function kOpts(r) {
+  const ps = S.posten.filter(p=>p.kasse===IMP.kasse || p.an===IMP.kasse);
+  const kats = r.betrag>=0?KAT.einnahme:KAT.ausgabe;
+  return `<optgroup label="Posten">${ps.map(p=>`<option value="p:${p.id}" ${r.postenId===p.id?"selected":""}>${esc(p.name)}</option>`).join("")}</optgroup><optgroup label="Kategorie">${kats.map(c=>`<option value="k:${c}" ${!r.postenId&&r.kategorie===c?"selected":""}>${c}</option>`).join("")}</optgroup>`;
+}
+// --- CSV lesen (Sparkasse CSV-CAMT und ähnliche) ---
+function parseCSV(text) {
+  text = text.replace(/^﻿/, "");
+  const first = text.split(/\r?\n/)[0] || ""; const d = (first.match(/;/g)||[]).length >= (first.match(/,/g)||[]).length ? ";" : ",";
+  const rows = []; let row = [], cur = "", q = false;
+  for (let i=0;i<text.length;i++) { const c = text[i];
+    if (q) { if (c === '"') { if (text[i+1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+    else if (c === '"') q = true; else if (c === d) { row.push(cur); cur = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && text[i+1] === "\n") i++; row.push(cur); rows.push(row); row = []; cur = ""; }
+    else cur += c; }
+  if (cur || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(x => x.trim()));
+}
+function toISO(s) { s = (s||"").trim(); let m = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})$/); if (m) { let y = m[3].length===2 ? "20"+m[3] : m[3]; return `${y}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`; } m = s.match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[0] : null; }
+function readImport(text, kasse) {
+  const rows = parseCSV(text); if (rows.length < 2) throw new Error("leer");
+  const hd = rows[0].map(h => h.toLowerCase().replace(/[^a-zäöüß]/g,""));
+  const find = (...keys) => { for (const k of keys) { const i = hd.indexOf(k); if (i >= 0) return i; } return hd.findIndex(h => keys.some(k => h.includes(k)) && !h.includes("ursprung") && !h.includes("valuta")); };
+  const iD = find("buchungstag","buchungsdatum","datum"), iB = find("betrag","umsatz"), iZ = find("verwendungszweck","zweck"), iN = find("beguenstigter","begünstigter","zahlungspflichtiger","name","empfänger","auftraggeber"), iT = find("buchungstext");
+  if (iD < 0 || iB < 0) throw new Error("spalten");
+  const seen = new Set(S.buchungen.map(b => b.hash));
+  return rows.slice(1).map(r => {
+    const datum = toISO(r[iD]); const betrag = parseNum(r[iB]); if (!datum || !betrag) return null;
+    const name = iN>=0 ? r[iN].trim() : ""; const zweck = iZ>=0 ? r[iZ].trim() : ""; const bt = iT>=0 ? r[iT].trim() : "";
+    const text = [name, zweck || bt].filter(Boolean).join(" · ").slice(0,160);
+    const hash = (datum + "|" + betrag.toFixed(2) + "|" + text.toLowerCase().replace(/\s+/g," ").slice(0,60)).replace(/[^a-z0-9|.\-äöüß ]/g,"");
+    const o = {datum, betrag, text, name, kasse, hash, dup: seen.has(hash)};
+    zuordnen(o); return o;
+  }).filter(Boolean);
+}
+function zuordnen(o) {
+  const t = o.text.toLowerCase();
+  const p = S.posten.find(p => (p.kasse===o.kasse || p.an===o.kasse) && ((p.stichwort && p.stichwort.split(",").some(w => w.trim() && t.includes(w.trim().toLowerCase()))) || (p.name && t.includes(p.name.toLowerCase().split(" ")[0]) && p.name.length>3) || (p.rhythmus!=="plan" && Math.abs(Math.abs(o.betrag) - (Number(p.betrag)||0)) < 0.01 && Math.sign(o.betrag) === (p.typ==="einnahme"?1:-1))));
+  if (p) { o.postenId = p.id; o.kategorie = p.kategorie; return; }
+  const rules = [[/partner|sponsor|werbung|bande|trikot.*brust/,"Partner"],[/mitglied|vereinsbeitrag|jahresbeitrag/,"Mitgliedsbeiträge"],[/hfv|dfb|verband|kreis.*fußball|spielbetrieb/,"Spielbetrieb & Verband"],[/schiri|schiedsrichter/,"Schiedsrichter"],[/11teamsports|eleven|adidas|jako|trikot|sport/,"Ausrüstung"],[/gemeinde|strom|wasser|platz|rasen/,"Platz & Anlage"],[/versicherung|arag|gebühr|entgelt|kontoführung/,"Versicherung & Gebühren"],[/spende/,"Spenden"],[/zuschuss|förder|lsb|landessportbund/,"Zuschüsse"],[/kerwe|fest|getränk|brauerei/,"Feste & Events"]];
+  const hit = rules.find(([re]) => re.test(t)); o.kategorie = hit ? hit[1] : "Sonstiges";
+  if (o.betrag>=0 && !KAT.einnahme.includes(o.kategorie)) o.kategorie = "Sonstiges";
+  if (o.betrag<0 && !KAT.ausgabe.includes(o.kategorie)) o.kategorie = "Sonstiges";
+}
+async function importieren() {
+  const neu = IMP.rows.filter(r=>!r.dup); let ok = 0;
+  const btn = $('[data-act="imp-ok"]'); if (btn) btn.disabled = true;
+  for (const r of neu) { const {dup, ...b} = r; if (await save("buchungen", null, b)) ok++; else break; if (btn) btn.textContent = `${ok} / ${neu.length}`; }
+  toast(`${ok} Buchungen übernommen.`); IMP = null; render();
+}
+// --- Wiederkehrendes erkennen ---
+function vorschlaege() {
+  const g = {};
+  S.buchungen.filter(b => !b.postenId && b.name).forEach(b => { const k = b.kasse + "|" + b.name.toLowerCase().slice(0,28) + "|" + Math.sign(b.betrag); (g[k] = g[k] || []).push(b); });
+  const out = [];
+  Object.values(g).forEach(list => { if (list.length < 3) return;
+    const bs = list.map(b=>Math.abs(b.betrag)).sort((a,b)=>a-b), med = bs[Math.floor(bs.length/2)];
+    if (bs.some(x => Math.abs(x-med) > med*0.15)) return;
+    const ds = list.map(b=>new Date(b.datum)).sort((a,b)=>a-b); const gaps = ds.slice(1).map((d,i)=>(d-ds[i])/864e5).sort((a,b)=>a-b); const gm = gaps[Math.floor(gaps.length/2)];
+    const rhythmus = gm < 45 ? "monatlich" : gm < 120 ? "quartal" : gm < 240 ? "halbjahr" : "jahr";
+    const s = Math.sign(list[0].betrag);
+    if (S.posten.some(p => p.name.toLowerCase() === list[0].name.toLowerCase())) return;
+    out.push({name:list[0].name, betrag:s*med, rhythmus, kasse:list[0].kasse, n:list.length, kategorie:list[0].kategorie, letzte:ds[ds.length-1]});
+  });
+  return out.slice(0,8);
+}
+async function vorschlagUebernehmen(v) {
+  const start = addM(ym(v.letzte), RHYTHMEN[v.rhythmus]);
+  if (await save("posten", null, {name:v.name, typ:v.betrag>=0?"einnahme":"ausgabe", kasse:v.kasse, rhythmus:v.rhythmus, betrag:Math.abs(v.betrag), start, sicherheit:"fest", kategorie:v.kategorie||"Sonstiges", stichwort:v.name.split(" ")[0], aktiv:true})) toast("Als Posten angelegt.");
+}
+async function exportCSV() {
+  const fc = forecast(); const lines = [["Monat",...KASSEN.flatMap(k=>[k.name+" Einnahmen",k.name+" Ausgaben",k.name+" Stand"])].join(";")];
+  fc.months.forEach((m,i)=>lines.push([m,...KASSEN.flatMap(k=>{const f=fc.flows[k.id][i];return [f.ein,f.aus,fc.series[k.id][i]].map(v=>v.toFixed(2).replace(".",","));})].join(";")));
+  try { await dlCap.save({filename:`Finanzprognose_${NOW}.csv`, data:new Blob(["﻿"+lines.join("\n")],{type:"text/csv"})}); } catch(e) { if (e && e.code !== "declined") toast("Export nicht möglich."); }
+}
+
+// ---------- Ratgeber ----------
+let RAT = {frage:"", antwort:"", laeuft:false, ctl:null};
+const FRAGEN = [
+  "Wie steht es um unsere Finanzen? Kurz und ehrlich.",
+  "Wie hoch sollte unsere Reserve sein, und dürfen wir als gemeinnütziger Verein so viel ansparen?",
+  "Welches Vorhaben sollten wir zuerst machen, und wann?",
+  "Wo können wir sparen oder mehr einnehmen?",
+  "Welche Förderprogramme passen zu unseren Vorhaben?",
+  "Was passiert, wenn die unsicheren Einnahmen ausfallen?"
+];
+function zusammenfassung() {
+  const fc = forecast({horizon:24}), vf = forecast({horizon:24, mode:"vorsicht"});
+  const k = KASSEN.map(x => ({kasse:x.name, heute:Math.round(istStand(x.id)), reserve:reserve(x.id), kontostandGepflegt:!!(S.kassen[x.id]||{}).bestaetigt,
+    tiefsterStand:Math.round(Math.min(...fc.series[x.id])), tiefsterMonat:fc.months[fc.series[x.id].indexOf(Math.min(...fc.series[x.id]))],
+    tiefsterStandVorsichtig:Math.round(Math.min(...vf.series[x.id])), standIn24Monaten:Math.round(fc.series[x.id][23])}));
+  const posten = S.posten.map(p => ({name:p.name, kasse:kName(p.kasse), typ:p.typ, an:p.an?kName(p.an):undefined, rhythmus:RH_TXT[p.rhythmus], betrag:p.rhythmus==="plan"?undefined:p.betrag, raten:p.rhythmus==="plan"?p.raten:undefined, start:p.start, ende:p.ende||undefined, kategorie:p.kategorie, sicherheit:p.sicherheit, notiz:p.notiz||undefined, aktiv:p.aktiv!==false}));
+  const vorhaben = S.vorhaben.map(v => ({titel:v.titel, kasse:kName(v.kasse), kosten:v.betrag, zuschuss:v.zuschuss||0, zuschussUnsicher:!!v.zuschussUnsicher, prio:v.prio, wunschmonat:v.monat, eingeplant:!!v.eingeplant, machbarAb:leistbarAb(v,"normal"), machbarAbVorsichtig:leistbarAb(v,"vorsicht")}));
+  const monate = fc.months.slice(0,12).map((m,i)=>({monat:m, ...Object.fromEntries(KASSEN.map(x=>[x.id, {ein:Math.round(fc.flows[x.id][i].ein), aus:Math.round(fc.flows[x.id][i].aus), stand:Math.round(fc.series[x.id][i])}]))}));
+  return {heute:NOW, kassen:k, posten, vorhaben, naechste12Monate:monate, anzahlBuchungen:S.buchungen.length};
+}
+async function frageStellen(frage) {
+  if (!sampleCap || RAT.laeuft) return;
+  RAT = {frage, antwort:"", laeuft:true, ctl:new AbortController()}; render();
+  const anweisung = `Du bist der Finanzberater der Fußballabteilung des SV/BSC Mörlenbach (Sportverein Mörlenbach 1896 e.V., gemeinnützig) und ihres Fördervereins. Die drei Leute, die fragen, sind Albert (Abteilungsleitung), Tobias (Finanzen) und Lukas (Organisation).
+Regeln für deine Antwort:
+- Deutsch, du-Form, freundlich und direkt. Kurz: höchstens 12 Zeilen, dann Schluss.
+- Rechne mit den Zahlen unten und nenne konkrete Beträge und Monate. Erfinde keine Zahlen; wenn etwas fehlt, sag welche Angabe fehlt.
+- Schreib "Partner", nie "Sponsor". Keine Gedankenstriche, keine Emojis, kein Markdown außer einfachen Aufzählungen mit "- ".
+- Denk an das Gemeinnützigkeitsrecht: zeitnahe Mittelverwendung, Rücklagen nur zweckgebunden oder als freie Rücklage nach § 62 AO, Mittelweitergabe Förderverein an Hauptverein nach § 58 AO. Nenn das nur, wenn es zur Frage passt.
+- Bei Förderprogrammen: nenn typische Quellen für hessische Sportvereine (Landessportbund Hessen, Sportkreis Bergstraße, Kreis Bergstraße, Gemeinde Mörlenbach, Stiftungen der Sparkasse Starkenburg, DFB Ehrenamt und Vereinsförderung), aber sag, dass Bedingungen und Fristen vorher geprüft werden müssen.
+- Schließ mit einer klaren Empfehlung, was als Nächstes zu tun ist.
+- Du ersetzt keine Steuer- oder Rechtsberatung; sag das nur in einem kurzen Satz, wenn es um Steuern oder Recht geht.
+
+Daten (JSON, Beträge in Euro, Monate als JJJJ-MM):
+${JSON.stringify(zusammenfassung())}
+
+Frage: ${frage}`;
+  try {
+    await sampleCap(anweisung, {signal:RAT.ctl.signal, cache:false, modelTier:"default", onText:({text}) => { RAT.antwort = text; const el = $("#ans"); if (el) el.textContent = text; }});
+  } catch(e) {
+    if (e && e.code === "not_granted") { sampleCap = null; RAT.antwort = ""; toast("Der Ratgeber wurde nicht freigegeben."); }
+    else if (e && e.code === "rate_limited") RAT.antwort = (RAT.antwort||"") + "\n\nGerade zu viele Fragen. Bitte in einer Minute nochmal.";
+    else if (!(e && e.name === "AbortError")) RAT.antwort = (e && e.text) || RAT.antwort || "Das hat nicht geklappt. Bitte nochmal fragen.";
+  }
+  RAT.laeuft = false; render();
+}
+function viewRat() {
+  if (!sampleCap) return `<div class="card empty">Der Ratgeber ist in dieser Ansicht nicht verfügbar. Alles andere funktioniert normal.</div>`;
+  return `<div class="card"><h2>Frag den Ratgeber</h2><p class="small" style="margin-top:0">Er kennt eure Kassen, Posten und Vorhaben und rechnet mit euren Zahlen. Er ersetzt keine Steuer- oder Rechtsberatung.</p>
+    <div class="row" style="margin-bottom:10px">${FRAGEN.map((f,i)=>`<button class="chip" data-frage="${i}" ${RAT.laeuft?"disabled":""}>${esc(f)}</button>`).join("")}</div>
+    <form id="ratForm" class="row"><input id="ratIn" placeholder="Eigene Frage, z.B. Können wir uns im Frühjahr neue Jugendtore leisten?" style="flex:1;min-width:200px"><button class="primary" ${RAT.laeuft?"disabled":""}>Fragen</button></form>
+    ${RAT.frage?`<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px"><div class="lbl">Frage</div><p style="margin:2px 0 10px;color:var(--ink)">${esc(RAT.frage)}</p><div class="lbl">Antwort</div><div class="answer" id="ans">${esc(RAT.antwort || (RAT.laeuft?"Rechne nach …":""))}</div>${RAT.laeuft?`<button class="ghost" data-act="rat-stop">Abbrechen</button>`:""}</div>`:""}
+  </div>`;
+}
+
+// ---------- Darstellung & Bedienung ----------
+function render() {
+  document.querySelectorAll("#tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === S.tab));
+  document.querySelectorAll("#modeSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === S.mode));
+  const bn = [];
+  if (!S.dbOk && S.ready) bn.push("Vorschau mit Beispieldaten. Gespeichert wird nur in der geteilten Ansicht auf claude.ai.");
+  else if (!S.canWrite) bn.push("Du kannst hier nur lesen.");
+  if (S.mode === "vorsicht") bn.push("Vorsichtig: unsichere Einnahmen und unsichere Zuschüsse sind herausgerechnet.");
+  $("#banner").innerHTML = bn.map(t=>`<div class="banner">${esc(t)}</div>`).join("");
+  if (!S.ready) { $("#view").innerHTML = `<div class="card empty">Lade Daten …</div>`; return; }
+  const v = {uebersicht:viewUebersicht, posten:viewPosten, vorhaben:viewVorhaben, buchungen:viewBuchungen, rat:viewRat}[S.tab];
+  const y = window.scrollY; $("#view").innerHTML = v(); window.scrollTo(0, y);
+  if (S.tab === "uebersicht") wireChart(S.preview ? forecast({extra:S.preview.extra}) : forecast());
+  if (S.tab === "buchungen") wireImport();
+}
+function wireImport() {
+  const inp = $("#csv"), drop = $("#drop"); if (!inp) return;
+  const go = async f => { if (!f) return; try { const txt = await readText(f); IMP = {kasse:($('#impK [aria-pressed="true"]')||{}).dataset?.k || "abteilung"}; IMP.rows = readImport(txt, IMP.kasse); if (!IMP.rows.length) { IMP = null; toast("Keine Buchungen in der Datei gefunden."); } render(); }
+    catch(e) { IMP = null; toast(e.message === "spalten" ? "Spalten Datum und Betrag nicht gefunden. Ist es der CSV-CAMT-Export?" : "Datei konnte nicht gelesen werden."); render(); } };
+  inp.onchange = () => go(inp.files[0]);
+  drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); }; drop.ondragleave = () => drop.classList.remove("over");
+  drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over"); go(e.dataTransfer.files[0]); };
+}
+async function readText(f) { const buf = await f.arrayBuffer(); let t = new TextDecoder("utf-8").decode(buf); if (t.includes(String.fromCharCode(0xFFFD))) t = new TextDecoder("windows-1252").decode(buf); return t; }
+
+document.addEventListener("click", async e => {
+  const t = e.target.closest("button,[data-edit],[data-act]"); if (!t) return;
+  if (t.closest("#tabs")) { S.tab = t.dataset.tab; render(); return; }
+  if (t.closest("#modeSeg")) { S.mode = t.dataset.mode; render(); return; }
+  if (t.closest("#impK")) { const k = t.dataset.k; t.parentElement.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", b===t)); if (IMP) { IMP.kasse = k; IMP.rows.forEach(r=>{r.kasse=k; zuordnen(r);}); render(); } return; }
+  const d = t.dataset;
+  if (d.h) { S.horizon = Number(d.h); render(); return; }
+  if (d.frage) { frageStellen(FRAGEN[Number(d.frage)]); return; }
+  if (d.prev) { previewVorhaben(S.vorhaben.find(v=>v.id===d.prev)); return; }
+  if (d.vedit) { sheetVorhaben(S.vorhaben.find(v=>v.id===d.vedit)); return; }
+  if (d.plan) { const v = S.vorhaben.find(x=>x.id===d.plan); const an = !v.eingeplant; const monat = v.monat || leistbarAb(v,S.mode) || NOW; await save("vorhaben", v.id, {...v, eingeplant:an, monat}); if (an) toast(`Eingeplant für ${mLong(monat)}.`); return; }
+  if (d.vor) { await vorschlagUebernehmen(vorschlaege()[Number(d.vor)]); return; }
+  if (d.edit !== undefined) { const p = S.posten.find(p=>p.id===d.edit); if (p && S.canWrite && S.dbOk) sheetPosten(p); return; }
+  const a = d.act || "";
+  if (a.startsWith("kasse:")) { if (S.canWrite && S.dbOk) sheetKasse(a.slice(6)); return; }
+  if (a === "neu-posten") sheetPosten(null);
+  else if (a === "neu-vorhaben") sheetVorhaben(null);
+  else if (a === "endpreview") { S.preview = null; render(); }
+  else if (a === "imp-abbruch") { IMP = null; render(); }
+  else if (a === "imp-ok") importieren();
+  else if (a === "export") exportCSV();
+  else if (a === "rat-stop") { RAT.ctl && RAT.ctl.abort(); }
+});
+document.addEventListener("change", e => { const s = e.target.closest("select[data-ri]"); if (!s || !IMP) return; const r = IMP.rows[Number(s.dataset.ri)]; const [k,v] = [s.value.slice(0,1), s.value.slice(2)];
+  if (k === "p") { const p = S.posten.find(x=>x.id===v); r.postenId = v; r.kategorie = p ? p.kategorie : r.kategorie; } else { r.postenId = null; r.kategorie = v; } });
+document.addEventListener("submit", e => { if (e.target.id !== "ratForm") return; e.preventDefault(); const q = $("#ratIn").value.trim(); if (q) frageStellen(q); });
+
+// ---------- Beispieldaten nur für die Vorschau ohne Speicher ----------
+function demo() {
+  S.kassen = {abteilung:{saldo:12000, stichtag:NOW+"-01", reserve:5000, bestaetigt:true}, foerderverein:{saldo:8000, stichtag:NOW+"-01", reserve:2000, bestaetigt:true}};
+  S.posten = [
+    {id:"d1", name:"Beispiel: Partnerbeiträge", typ:"einnahme", kasse:"abteilung", rhythmus:"jahr", betrag:6000, start:addM(NOW,2), kategorie:"Partner", sicherheit:"geplant"},
+    {id:"d2", name:"Beispiel: Verbandsgebühren", typ:"ausgabe", kasse:"abteilung", rhythmus:"halbjahr", betrag:1400, start:addM(NOW,1), kategorie:"Spielbetrieb & Verband", sicherheit:"fest"},
+    {id:"d3", name:"Beispiel: Schiedsrichter", typ:"ausgabe", kasse:"abteilung", rhythmus:"monatlich", betrag:350, start:NOW, kategorie:"Schiedsrichter", sicherheit:"fest"},
+    {id:"d4", name:"Beispiel: Mitgliedsbeiträge Förderverein", typ:"einnahme", kasse:"foerderverein", rhythmus:"jahr", betrag:4200, start:addM(NOW,3), kategorie:"Mitgliedsbeiträge", sicherheit:"fest"},
+    {id:"d5", name:"Beispiel: Zuschuss Jugend", typ:"transfer", kasse:"foerderverein", an:"abteilung", rhythmus:"jahr", betrag:2500, start:addM(NOW,4), kategorie:"Sonstiges", sicherheit:"geplant"}];
+  S.vorhaben = [{id:"v1", titel:"Beispiel: Ballwand", betrag:9000, zuschuss:3000, zuschussUnsicher:true, kasse:"abteilung", prio:1, monat:addM(NOW,6)}];
+}
+
+(async function init() {
+  render();
+  const use = n => (window.claude && window.claude.use ? window.claude.use(n).catch(()=>null) : Promise.resolve(null));
+  use("sample").then(x => { sampleCap = x; if (S.tab === "rat") render(); });
+  use("downloads").then(x => { dlCap = x; if (S.tab === "buchungen") render(); });
+  await connect();
+  if (!S.dbOk) { demo(); render(); }
+})();
+let rzT=null; window.addEventListener("resize", () => { clearTimeout(rzT); rzT = setTimeout(() => { if (S.tab === "uebersicht") render(); }, 200); });
+
+</script>
+</body></html>
