@@ -124,45 +124,107 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:now
   <main id="view"></main>
 </div>
 <div id="sheet"></div>
+
+<div id="login" class="sheet" hidden style="align-items:center;background:var(--bg);padding:16px">
+  <div class="panel" style="max-width:420px;border-radius:14px;border:1px solid var(--line)">
+    <div class="brand"><span class="k">SV/BSC</span><span class="sep"></span><span class="s">Mörlenbach<br>· Fußball</span></div>
+    <h1 style="margin:14px 0 4px">Finanzplan</h1>
+    <p class="small" style="margin:0 0 14px">Anmelden mit deinem Zugang zur Sportzentrale.</p>
+    <form id="lForm" class="grid" style="gap:10px">
+      <label class="f">E-Mail<input id="lMail" type="email" autocomplete="username" required></label>
+      <label class="f">Passwort<input id="lPw" type="password" autocomplete="current-password" required></label>
+      <button class="primary" id="lBtn">Anmelden</button>
+    </form>
+    <div class="row" style="margin-top:8px"><button class="ghost" id="lLink" type="button">Lieber Link per E-Mail</button><span class="sp"></span><button class="ghost" id="lOut" type="button" hidden>Abmelden</button></div>
+    <p class="small" id="lMsg" role="status" style="min-height:1.5em"></p>
+  </div>
+</div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-// ---------- Vorschau ohne Server: Beispieldaten im Speicher, nichts wird gespeichert ----------
+// ---------- Anbindung finanzen.kaderwerk.pro: Anmeldung über die Sportzentrale, Daten in Supabase ----------
 (function () {
-  const M = (n) => { const d = new Date(); d.setMonth(d.getMonth() + n); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); };
-  const heute = new Date().toISOString().slice(0, 10);
-  const store = {
-    kassen: {
-      abteilung: { name: "Abteilung Fußball", saldo: 12400, stichtag: heute, reserve: 4000, bestaetigt: true },
-      foerderverein: { name: "Förderverein", saldo: 7800, stichtag: heute, reserve: 1500, bestaetigt: true } },
-    posten: {
-      p1: { name: "Partnerbeiträge Bande und Trikot", typ: "einnahme", kasse: "abteilung", rhythmus: "jahr", betrag: 6400, start: M(3), kategorie: "Partner", sicherheit: "geplant", aktiv: true },
-      p2: { name: "Verbandsgebühren HFV", typ: "ausgabe", kasse: "abteilung", rhythmus: "halbjahr", betrag: 1450, start: M(1), kategorie: "Spielbetrieb & Verband", sicherheit: "fest", aktiv: true },
-      p3: { name: "Schiedsrichterkosten", typ: "ausgabe", kasse: "abteilung", rhythmus: "monatlich", betrag: 320, start: M(0), kategorie: "Schiedsrichter", sicherheit: "fest", aktiv: true, notiz: "Sommerpause fällt nicht raus, Durchschnitt" },
-      p4: { name: "Spieltagskasse Heimspiele", typ: "einnahme", kasse: "abteilung", rhythmus: "monatlich", betrag: 380, start: M(0), kategorie: "Spieltag & Kasse", sicherheit: "geplant", aktiv: true },
-      p5: { name: "Neue Trikotsätze Jugend", typ: "ausgabe", kasse: "abteilung", rhythmus: "plan", raten: [{ monat: M(2), betrag: 9000 }, { monat: M(14), betrag: 6000 }], kategorie: "Ausrüstung", sicherheit: "geplant", aktiv: true },
-      p6: { name: "Kerwe Überschuss", typ: "einnahme", kasse: "abteilung", rhythmus: "jahr", betrag: 3500, start: M(10), kategorie: "Feste & Events", sicherheit: "unsicher", aktiv: true },
-      p7: { name: "Mitgliedsbeiträge Förderverein", typ: "einnahme", kasse: "foerderverein", rhythmus: "jahr", betrag: 4600, start: M(3), kategorie: "Mitgliedsbeiträge", sicherheit: "fest", aktiv: true },
-      p8: { name: "Zuschuss Jugend an die Abteilung", typ: "transfer", kasse: "foerderverein", an: "abteilung", rhythmus: "jahr", betrag: 3000, start: M(4), kategorie: "Sonstiges", sicherheit: "geplant", aktiv: true } },
-    vorhaben: {
-      v1: { titel: "Ballwand am Kleinfeld", betrag: 9000, zuschuss: 3000, zuschussUnsicher: true, kasse: "abteilung", prio: 1, monat: M(6) },
-      v2: { titel: "Neue Jugendtore (2 Paar)", betrag: 4800, kasse: "foerderverein", prio: 2, monat: M(5) } },
-    buchungen: {}
-  };
-  const listeners = {};
-  const snap = c => ({ docs: Object.entries(store[c] || {}).map(([id, d]) => ({ id, exists: true, data: () => d })) });
-  const fire = c => setTimeout(() => (listeners[c] || []).forEach(f => f(snap(c))), 0);
-  const ref = (c, id) => ({ id, async set(d) { (store[c] = store[c] || {})[id] = d; fire(c); }, async delete() { delete store[c][id]; fire(c); },
-    async get() { return { id, exists: !!(store[c] || {})[id], data: () => store[c][id] }; } });
-  const db = { doc: p => { const [c, id] = p.split("/"); return ref(c, id); },
-    collection: c => ({ onSnapshot(next) { (listeners[c] = listeners[c] || []).push(next); fire(c); return () => {}; },
-      doc: id => ref(c, id || Math.random().toString(36).slice(2, 10)), async add(d) { const id = Math.random().toString(36).slice(2, 10); await ref(c, id).set(d); return { id }; } }) };
-  const user = { id: async () => "vorschau", can: async () => true, profiles: async () => ({}) };
-  const downloads = { save: async ({ filename, data }) => { const b = data instanceof Blob ? data : new Blob([data]); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = filename; document.body.appendChild(a); a.click(); setTimeout(() => a.remove(), 1000); return { status: "saved" }; } };
-  window.claude = { use: async n => ({ db, user, downloads })[n] || null };
-  document.addEventListener("DOMContentLoaded", () => {
-    const b = document.createElement("div"); b.className = "banner"; b.style.marginBottom = "12px";
-    b.textContent = "Vorschau mit Beispieldaten. Du kannst alles ausprobieren, nach dem Neuladen ist es wieder der Ausgangsstand. Der Ratgeber kommt mit der echten Version.";
-    const w = document.querySelector(".wrap"); w.insertBefore(b, document.getElementById("banner"));
+  const SB_URL = "https://lvaukuzgcwgqipxwzabo.supabase.co";
+  const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2YXVrdXpnY3dncWlweHd6YWJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxNTYwMTcsImV4cCI6MjEwNTczMjAxN30.jYZF8q8-SyCaWykM0wwcK58EzfTbO2VASKz1NIv1xbo";
+  const sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "implicit", storageKey: "finanzplan-auth" } });
+  let resolveReady; const ready = new Promise(r => resolveReady = r);
+  let session = null, darf = false;
+  const $l = s => document.querySelector(s);
+
+  // --- Anmeldung ---
+  function zeigeLogin(msg) {
+    $l("#login").hidden = false;
+    $l("#lMsg").textContent = msg || "";
+  }
+  async function nachAnmeldung(s) {
+    session = s;
+    const { data, error } = await sb.rpc("darf", { p: "finanzen" });
+    darf = !error && data === true;
+    if (!darf) { zeigeLogin("Für dein Konto ist der Finanzplan nicht freigegeben. Albert kann das in der Sportzentrale unter Verwaltung ändern."); $l("#lOut").hidden = false; return; }
+    $l("#login").hidden = true;
+    const { data: p } = await sb.from("profiles").select("name").eq("id", s.user.id).maybeSingle();
+    $l("#who").innerHTML = `<span class="small">${(p && p.name ? p.name : s.user.email).replace(/[<>&]/g, "")}</span> <button class="ghost" id="logout">Abmelden</button>`;
+    $l("#logout").onclick = async () => { await sb.auth.signOut(); location.reload(); };
+    resolveReady();
+  }
+  document.addEventListener("submit", async e => {
+    if (e.target.id !== "lForm") return; e.preventDefault();
+    const email = $l("#lMail").value.trim(), pw = $l("#lPw").value;
+    $l("#lBtn").disabled = true; $l("#lMsg").textContent = "";
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+    $l("#lBtn").disabled = false;
+    if (error) { $l("#lMsg").textContent = "Anmeldung hat nicht geklappt. Gleiche E-Mail und Passwort wie in der Sportzentrale."; return; }
+    nachAnmeldung(data.session);
   });
+  document.addEventListener("click", async e => {
+    if (e.target.id === "lLink") {
+      const email = $l("#lMail").value.trim(); if (!email) { $l("#lMsg").textContent = "Bitte zuerst deine E-Mail eintragen."; return; }
+      const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false } });
+      $l("#lMsg").textContent = error ? "Das hat nicht geklappt. Ist die Adresse in der Sportzentrale eingeladen?" : "Link ist unterwegs. Öffne ihn auf diesem Gerät.";
+    }
+    if (e.target.id === "lOut") { await sb.auth.signOut(); location.reload(); }
+  });
+  sb.auth.getSession().then(({ data }) => { if (data.session) nachAnmeldung(data.session); else zeigeLogin(""); });
+
+  // --- Datenspeicher im Stil des db-Bausteins ---
+  const cache = {}, listeners = {};
+  const rid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+  const fehler = e => ({ code: (e && (e.code === "42501" || /row-level security/i.test(e.message || ""))) ? "invalid_argument" : "unavailable", message: (e && e.message) || "" });
+  async function laden(c) {
+    let rows = [], from = 0;
+    for (;;) { const { data, error } = await sb.from("finanz_docs").select("id,data,geaendert,von").eq("col", c).range(from, from + 999);
+      if (error) throw fehler(error); rows = rows.concat(data); if (data.length < 1000) break; from += 1000; }
+    cache[c] = rows; (listeners[c] || []).forEach(f => f());
+  }
+  const snap = c => ({ docs: (cache[c] || []).map(r => ({ id: r.id, exists: true, data: () => r.data })), empty: !(cache[c] || []).length, size: (cache[c] || []).length });
+  function docref(c, id) {
+    return {
+      id, path: c + "/" + id,
+      async set(d) { const { error } = await sb.from("finanz_docs").upsert({ col: c, id, data: d }); if (error) throw fehler(error); await laden(c); },
+      async delete() { const { error } = await sb.from("finanz_docs").delete().eq("col", c).eq("id", id); if (error) throw fehler(error); await laden(c); },
+      async get() { const r = (cache[c] || []).find(x => x.id === id); return { id, exists: !!r, data: () => r && r.data }; }
+    };
+  }
+  const db = {
+    doc: p => { const [c, id] = p.split("/"); return docref(c, id); },
+    collection: c => ({
+      onSnapshot(next, err) { (listeners[c] = listeners[c] || []).push(() => next(snap(c))); laden(c).catch(e => err && err(e)); return () => {}; },
+      doc: id => docref(c, id || rid()),
+      async add(d) { const id = rid(); await docref(c, id).set(d); return { id }; }
+    })
+  };
+  // Änderungen der anderen alle 20 Sekunden holen, wenn die Seite sichtbar ist
+  setInterval(() => { if (document.visibilityState === "visible" && session && darf) Object.keys(listeners).forEach(c => laden(c).catch(() => {})); }, 20000);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && session && darf) Object.keys(listeners).forEach(c => laden(c).catch(() => {})); });
+
+  const user = { id: async () => session && session.user.id, can: async () => darf, canEdit: async () => darf, isOwner: async () => false, profiles: async () => ({}) };
+  const sample = async (input, opts = {}) => {
+    const { data, error } = await sb.functions.invoke("finanz-ki", { body: { prompt: typeof input === "string" ? input : JSON.stringify(input) } });
+    if (error) { const st = error.context && error.context.status; throw { code: st === 429 ? "rate_limited" : "unavailable", message: String(error.message || "") }; }
+    if (!data || !data.ok) throw { code: "unavailable", text: (data && data.error) || "Der Ratgeber ist gerade nicht erreichbar." };
+    opts.onText && opts.onText({ text: data.text, delta: data.text });
+    return { text: data.text, truncated: false };
+  };
+  const downloads = { save: async ({ filename, data }) => { const b = data instanceof Blob ? data : new Blob([data]); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = filename; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); return { status: "saved" }; } };
+  window.claude = { use: async n => { await ready; return ({ db, user, sample, downloads })[n] || null; } };
 })();
 
 </script>
