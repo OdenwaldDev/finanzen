@@ -116,6 +116,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:now
   <div id="banner"></div>
   <nav class="tabs" role="tablist" id="tabs">
     <button data-tab="uebersicht" aria-selected="true">Übersicht</button>
+    <button data-tab="haushalt" aria-selected="false">Haushalt</button>
     <button data-tab="posten" aria-selected="false">Wiederkehrend</button>
     <button data-tab="vorhaben" aria-selected="false">Vorhaben</button>
     <button data-tab="buchungen" aria-selected="false">Buchungen</button>
@@ -240,7 +241,7 @@ const KAT = {
   einnahme:["Mitgliedsbeiträge","Partner","Spieltag & Kasse","Feste & Events","Zuschüsse","Spenden","Eigenanteile","Sonstiges"],
   ausgabe:["Ausrüstung","Spielbetrieb & Verband","Schiedsrichter","Trainer & Übungsleiter","Platz & Anlage","Veranstaltungen","Versicherung & Gebühren","Sonstiges"]
 };
-const S = {kassen:{}, posten:[], buchungen:[], vorhaben:[], mode:"normal", tab:"uebersicht", horizon:24, preview:null, ready:false, dbOk:false, canWrite:true, me:null, names:{}};
+const S = {kassen:{}, posten:[], buchungen:[], vorhaben:[], haushalt:[], hh:{jahr:null, kasse:"alle"}, mode:"normal", tab:"uebersicht", horizon:24, preview:null, ready:false, dbOk:false, canWrite:true, me:null, names:{}};
 let db = null, userCap = null, sampleCap = null, dlCap = null;
 
 const $ = (s, el=document) => el.querySelector(s);
@@ -318,7 +319,7 @@ function leistbarAb(v, mode) {
 }
 
 // ---------- Daten ----------
-const COLS = ["kassen","posten","buchungen","vorhaben"];
+const COLS = ["kassen","posten","buchungen","vorhaben","haushalt"];
 async function connect() {
   try { db = await window.claude?.use?.("db"); } catch(e) { db = null; }
   if (!db) { S.ready = true; S.dbOk = false; render(); return; }
@@ -547,7 +548,9 @@ function sheetPosten(p) {
     $("#fSave").disabled = true; if (await save("posten", neu?null:p.id, o)) closeSheet(); else $("#fSave").disabled = false; };
   if (!neu) confirmDelete($("#fDel"), () => remove("posten", p.id));
 }
-function parseNum(v) { if (v==null) return 0; v = String(v).trim().replace(/\s|€/g,""); if (/,\d{1,2}$/.test(v) || v.includes(",")) v = v.replace(/\./g,"").replace(",","."); const n = parseFloat(v); return isNaN(n)?0:Math.round(n*100)/100; }
+function parseNum(v) { if (v==null) return 0; v = String(v).trim().replace(/\s|€/g,""); if (/,\d{1,2}$/.test(v) || v.includes(",")) v = v.replace(/\./g,"").replace(",",".");
+  else if (/^-?\d{1,3}(\.\d{3})+$/.test(v)) v = v.replace(/\./g,"");   // „1.000“ ohne Komma ist tausend, nicht eins
+  const n = parseFloat(v); return isNaN(n)?0:Math.round(n*100)/100; }
 function confirmDelete(btn, fn) {
   let armed = false; btn.onclick = async () => { if (!armed) { armed = true; btn.textContent = "Wirklich löschen?"; setTimeout(()=>{armed=false; btn.textContent="Löschen";}, 4000); return; } if (await fn()) closeSheet(); };
 }
@@ -776,17 +779,201 @@ function viewRat() {
   </div>`;
 }
 
+// ---------- Haushalt ----------
+// Haushaltsplan wie bei einer Gemeinde (Tobias Jäger, 17.11.2026): Jeder Bereich meldet seinen Bedarf für das Jahr,
+// alle Ausgaben stehen gegen alle Einnahmen. Einnahmen werden vorsichtig angesetzt (ein Fest zum Beispiel nur zur Hälfte).
+// Der Haushalt darf nie ins Minus gehen, am besten bleibt ein kleiner Überschuss als Polster.
+// Daten: Sammlung „haushalt“. Zeilen haben art „zeile“, die Einstellungen liegen im Dokument „cfg“.
+const HH_BEREICHE = ["Erste Mannschaft","Zweite Mannschaft","Jugend","Trainer und Material","Platz und Anlage","Spielbetrieb und Verband","Veranstaltungen","Verwaltung","Sonstiges"];
+const HH_STATUS = {gemeldet:"gemeldet", bewilligt:"bewilligt", gestrichen:"gestrichen"};
+const HH_ANSATZ = {fest:100, geplant:100, unsicher:50};
+
+function hhCfg() { return S.haushalt.find(x => x.id === "cfg") || {}; }
+function hhArt() { return hhCfg().jahrArt === "kalender" ? "kalender" : "saison"; }
+function hhPolsterPct() { const p = Number(hhCfg().polster); return isNaN(p) || hhCfg().polster == null ? 5 : Math.max(0, Math.min(50, p)); }
+// Startjahr des laufenden Haushaltsjahrs: Saison beginnt am 1. Juli
+function hhAktuell() { const [y, m] = NOW.split("-").map(Number); return hhArt() === "saison" ? (m >= 7 ? y : y - 1) : y; }
+function hhKey(j) { return hhArt() === "saison" ? `${j}/${String((j + 1) % 100).padStart(2, "0")}` : String(j); }
+function hhName(j) { return hhArt() === "saison" ? "Saison " + hhKey(j) : "Jahr " + j; }
+function hhSpanne(j) { return hhArt() === "saison" ? [j + "-07", (j + 1) + "-06"] : [j + "-01", j + "-12"]; }
+function hhJahr() { if (S.hh.jahr == null) S.hh.jahr = hhAktuell(); return S.hh.jahr; }
+function hhAlle(j) { return S.haushalt.filter(z => z.art === "zeile" && z.jahr === hhKey(j)); }
+function hhZeilen(j) { return hhAlle(j).filter(z => S.hh.kasse === "alle" || z.kasse === S.hh.kasse); }
+function hhAnsatz(z) { const a = Number(z.ansatz); return z.typ === "einnahme" ? (isNaN(a) || z.ansatz == null ? 100 : Math.max(0, Math.min(100, a))) : 100; }
+function hhWert(z) { return Math.round((Number(z.betrag) || 0) * hhAnsatz(z)) / 100; }
+
+// Rechenkern: liefert die Summen eines Haushaltsjahrs. Gestrichene Zeilen zählen nicht.
+function hhSumme(zs) {
+  const akt = zs.filter(z => z.status !== "gestrichen");
+  const aus = akt.filter(z => z.typ === "ausgabe"), ein = akt.filter(z => z.typ === "einnahme");
+  const A = aus.reduce((s, z) => s + (Number(z.betrag) || 0), 0);
+  const Evoll = ein.reduce((s, z) => s + (Number(z.betrag) || 0), 0);
+  const E = ein.reduce((s, z) => s + hhWert(z), 0);
+  const offen = aus.filter(z => z.status !== "bewilligt").reduce((s, z) => s + (Number(z.betrag) || 0), 0);
+  const polster = Math.round(A * hhPolsterPct()) / 100;
+  return {A, E, Evoll, erg: E - A, best: Evoll - A, offen, polster, n: akt.length};
+}
+// Urteil nach der Regel: nie ins Minus, möglichst ein Polster
+function hhUrteil(s) {
+  if (!s.n) return null;
+  if (s.erg < -0.005) return {t:"bad", ic:"Fehlbetrag", h:`Der Haushalt geht nicht auf: Es fehlen ${eur(-s.erg)}.`, s:"Bedarf kürzen oder verschieben, oder Einnahmen finden, auf die wir uns verlassen können." + (s.best >= 0 ? ` Kommt alles wie erhofft, bliebe ein Plus von ${eur(s.best)}. Darauf planen wir nicht.` : "")};
+  if (s.erg < s.polster - 0.005) return {t:"warn", ic:"Knapp", h:`Der Haushalt geht auf, aber nur mit ${eur(s.erg)} Überschuss.`, s:`Als Polster für ein schlechtes Jahr und für größere Anschaffungen sind ${eur(s.polster)} das Ziel (${String(hhPolsterPct()).replace(".", ",")} % der Ausgaben).`};
+  return {t:"good", ic:"Geht auf", h:`Der Haushalt geht auf. Es bleibt ein Überschuss von ${eur(s.erg)} als Polster.`, s: s.best > s.erg + 0.005 ? `Kommt alles wie erhofft, sind es ${eur(s.best)}.` : ""};
+}
+function hhGruppen(zs, typ) {
+  const g = {}; zs.filter(z => z.typ === typ).forEach(z => { const b = z.bereich || "Sonstiges"; (g[b] = g[b] || []).push(z); });
+  return Object.entries(g).map(([b, list]) => ({b, list: list.sort((x, y) => (Number(y.betrag) || 0) - (Number(x.betrag) || 0)),
+    sum: list.filter(z => z.status !== "gestrichen").reduce((s, z) => s + (typ === "einnahme" ? hhWert(z) : (Number(z.betrag) || 0)), 0)})).sort((x, y) => y.sum - x.sum);
+}
+function hhJahre() {
+  const a = hhAktuell(), set = new Set([a, a + 1]);
+  S.haushalt.forEach(z => { if (z.art !== "zeile") return; const m = String(z.jahr || "").match(/^(\d{4})(\/\d{2})?$/); if (m && (!!m[2]) === (hhArt() === "saison")) set.add(Number(m[1])); });
+  set.add(hhJahr()); return [...set].sort();
+}
+
+function viewHaushalt() {
+  const j = hhJahr(), zs = hhZeilen(j), s = hhSumme(zs), u = hhUrteil(s), kann = S.canWrite && S.dbOk;
+  const vor = hhAlle(j - 1).filter(z => z.status !== "gestrichen").length;
+  let h = `<div class="row" style="margin-bottom:10px"><div class="row" id="hhJ">${hhJahre().map(y => `<button class="chip" data-hj="${y}" aria-pressed="${y === j}">${esc(hhName(y))}</button>`).join("")}</div><span class="sp"></span>
+    <div class="row" id="hhK">${[["alle","Beide Kassen"], ...KASSEN.map(k => [k.id, k.name])].map(([id, n]) => `<button class="chip" data-hk="${id}" aria-pressed="${S.hh.kasse === id}">${esc(n)}</button>`).join("")}</div></div>`;
+  h += `<div class="grid g4" style="margin-bottom:12px">
+    <div class="card kpi"><div class="lbl">Einnahmen, vorsichtig</div><div class="z">${eur(s.E)}</div><div class="d">erhofft ${eur(s.Evoll)}</div></div>
+    <div class="card kpi"><div class="lbl">Ausgaben, Bedarf</div><div class="z">${eur(s.A)}</div><div class="d">${s.offen > 0 ? "davon noch nicht bewilligt " + eur(s.offen) : "alles bewilligt"}</div></div>
+    <div class="card kpi"><div class="lbl">Ergebnis</div><div class="z ${s.erg < -0.005 ? "neg" : "pos"}" id="hhErg">${s.erg > 0.005 ? "+" : ""}${eur(s.erg)}</div><div class="d">${s.erg < -0.005 ? "Fehlbetrag" : "Überschuss"}</div></div>
+    <div class="card kpi"><div class="lbl">Polster, Ziel</div><div class="z">${eur(s.polster)}</div><div class="d">${String(hhPolsterPct()).replace(".", ",")} % der Ausgaben</div></div></div>`;
+  if (u) h += `<div class="note ${u.t}" id="hhNote" style="margin-bottom:12px"><span class="ic">${u.ic}</span><span><b>${esc(u.h)}</b>${u.s ? "<br>" + esc(u.s) : ""}</span></div>`;
+  h += `<div class="row" style="margin-bottom:12px">${kann ? `<button class="primary" data-act="hh-bedarf">+ Bedarf melden</button><button data-act="hh-einnahme">+ Einnahme</button><button data-act="hh-import">Aus Wiederkehrend übernehmen</button>${!hhAlle(j).length && vor ? `<button data-act="hh-vorjahr" id="hhVor">${esc(hhName(j - 1))} übernehmen</button>` : ""}` : ""}<span class="sp"></span>${dlCap && s.n ? `<button class="ghost" data-act="hh-export">Als Datei laden</button>` : ""}${kann ? `<button class="ghost" data-act="hh-cfg">Einstellungen</button>` : ""}</div>`;
+  if (!hhAlle(j).length) {
+    h += `<div class="card"><h2>${esc(hhName(j))}</h2><div class="empty">Noch kein Haushalt für diesen Zeitraum. So geht es:<br>1. Jeder Bereich meldet, was er im Jahr braucht, zum Beispiel Trainingsmaterial für 1.000 €.<br>2. Einnahmen kommen dazu, vorsichtig angesetzt: Unsichere Einnahmen wie ein Fest lieber nur zur Hälfte.<br>3. Am Ende steht das Ergebnis. Es darf nicht im Minus sein, am besten bleibt ein kleiner Überschuss als Polster.</div></div>`;
+    return h;
+  }
+  const liste = (typ, titel, leer) => {
+    const gr = hhGruppen(zs, typ); let c = `<div class="card" style="margin-bottom:12px"><div class="row"><h2 style="margin:0">${titel}</h2><span class="sp"></span><span class="small">${typ === "einnahme" ? "angesetzt" : "Bedarf"}: <b>${eur(typ === "einnahme" ? s.E : s.A)}</b></span></div>`;
+    if (!gr.length) return c + `<div class="empty">${leer}</div></div>`;
+    gr.forEach(g => {
+      c += `<div class="row" style="margin-top:12px"><h3>${esc(g.b)}</h3><span class="sp"></span><span class="small"><b>${eur(g.sum)}</b></span></div><div class="list">`;
+      g.list.forEach(z => {
+        const weg = z.status === "gestrichen", an = hhAnsatz(z), b = Number(z.betrag) || 0;
+        const tags = (typ === "ausgabe" && z.status !== "bewilligt" ? `<span class="tag ${weg ? "" : "geplant"}">${esc(HH_STATUS[z.status] || "gemeldet")}</span>` : "") + (typ === "einnahme" && weg ? `<span class="tag">gestrichen</span>` : "") + (typ === "einnahme" && !weg && an < 100 ? `<span class="tag unsicher">zu ${an} % angesetzt</span>` : "");
+        const m = [typ === "einnahme" && an < 100 ? "erhofft " + eur(b) : "", S.hh.kasse === "alle" ? kName(z.kasse) : "", z.wer ? "gemeldet von " + z.wer : "", z.notiz || ""].filter(Boolean).map(esc).join(" · ");
+        c += `<div class="item" data-hedit="${esc(z.id)}"${weg ? ' style="opacity:.55"' : ""}><span class="n">${esc(z.titel || "")}${tags}</span><span class="a ${typ === "einnahme" ? "pos" : ""}"${weg ? ' style="text-decoration:line-through"' : ""}>${typ === "einnahme" ? "+" : "−"}${eur(typ === "einnahme" ? hhWert(z) : b)}</span>${m ? `<span class="m">${m}</span>` : ""}</div>`;
+      });
+      c += `</div>`;
+    });
+    return c + `</div>`;
+  };
+  h += liste("ausgabe", "Ausgaben nach Bereich", "Noch kein Bedarf gemeldet.");
+  h += liste("einnahme", "Einnahmen", "Noch keine Einnahmen eingetragen. Ohne Einnahmen geht kein Haushalt auf.");
+  return h;
+}
+
+// ---------- Formular: Haushaltszeile ----------
+function sheetHaushalt(z, typNeu) {
+  const neu = !z; z = z ? {...z} : {art:"zeile", jahr:hhKey(hhJahr()), typ:typNeu || "ausgabe", kasse:S.hh.kasse === "alle" ? "abteilung" : S.hh.kasse, status:"gemeldet", ansatz:100};
+  const ein = z.typ === "einnahme";
+  const vorschl = [...new Set([...(ein ? KAT.einnahme : HH_BEREICHE), ...S.haushalt.filter(x => x.art === "zeile" && x.typ === z.typ).map(x => x.bereich).filter(Boolean)])];
+  openSheet(`<h2>${neu ? (ein ? "Neue Einnahme" : "Bedarf melden") : (ein ? "Einnahme bearbeiten" : "Bedarf bearbeiten")}</h2>
+  <p class="small" style="margin:0 0 10px">${esc(hhName(hhJahr()))}</p>
+  <div class="fgrid">
+    <label class="f">${ein ? "Art der Einnahme" : "Bereich"}<input id="hB" list="hBL" value="${esc(z.bereich || "")}" placeholder="${ein ? "z.B. Feste & Events" : "z.B. Jugend"}"><datalist id="hBL">${vorschl.map(v => `<option value="${esc(v)}">`).join("")}</datalist></label>
+    <label class="f">Kasse<select id="hK">${KASSEN.map(k => `<option value="${k.id}" ${z.kasse === k.id ? "selected" : ""}>${k.name}</option>`).join("")}</select></label>
+    <label class="f full">${ein ? "Woher" : "Wofür"}<input id="hT" value="${esc(z.titel || "")}" placeholder="${ein ? "z.B. Kerwe" : "z.B. Trainingsmaterial"}"></label>
+    <label class="f">${ein ? "Erhofft im Jahr in €" : "Bedarf im Jahr in €"}<input id="hE" inputmode="decimal" value="${z.betrag != null ? String(z.betrag).replace(".", ",") : ""}" placeholder="0,00"></label>
+    ${ein ? `<label class="f">Davon fest einrechnen<select id="hA">${[100, 90, 80, 75, 50, 25, 0].map(v => `<option value="${v}" ${hhAnsatz(z) === v ? "selected" : ""}>${v} %</option>`).join("")}${[100, 90, 80, 75, 50, 25, 0].includes(hhAnsatz(z)) ? "" : `<option value="${hhAnsatz(z)}" selected>${hhAnsatz(z)} %</option>`}</select></label>`
+      : `<label class="f">Stand<select id="hS">${Object.keys(HH_STATUS).map(v => `<option value="${v}" ${(z.status || "gemeldet") === v ? "selected" : ""}>${HH_STATUS[v]}</option>`).join("")}</select></label>`}
+    ${ein ? `<label class="f">Stand<select id="hS"><option value="bewilligt" ${z.status !== "gestrichen" ? "selected" : ""}>zählt mit</option><option value="gestrichen" ${z.status === "gestrichen" ? "selected" : ""}>gestrichen</option></select></label>` : `<label class="f">Gemeldet von<input id="hW" value="${esc(z.wer || "")}" placeholder="optional"></label>`}
+    <label class="f full">Notiz<input id="hN" value="${esc(z.notiz || "")}" placeholder="optional"></label>
+  </div>
+  <p class="small" id="hInfo">${ein ? "Unsichere Einnahmen lieber niedrig ansetzen, zum Beispiel ein Fest nur zur Hälfte. Was mehr hereinkommt, ist dann Polster." : "Gestrichenes bleibt in der Liste stehen, zählt aber nicht mehr mit."}</p>
+  <div class="row" style="margin-top:12px">${!neu ? `<button class="ghost" id="fDel" style="color:var(--bad)">Löschen</button>` : ""}<span class="sp"></span><button id="fCancel">Abbrechen</button><button class="primary" id="fSave">Speichern</button></div>`);
+  if (ein) { const info = () => { const b = parseNum($("#hE").value), a = Number($("#hA").value); $("#hInfo").textContent = b ? `Im Haushalt stehen damit ${eur(Math.round(b * a) / 100, (Math.round(b * a) % 100) ? 2 : 0)}.` + (a < 100 ? " Was mehr hereinkommt, ist Polster." : "") : "Unsichere Einnahmen lieber niedrig ansetzen, zum Beispiel ein Fest nur zur Hälfte. Was mehr hereinkommt, ist dann Polster."; };
+    $("#sheet .panel").addEventListener("input", info); info(); }
+  $("#fCancel").onclick = closeSheet;
+  $("#fSave").onclick = async () => {
+    const o = {...z, art:"zeile", bereich:$("#hB").value.trim() || "Sonstiges", kasse:$("#hK").value, titel:$("#hT").value.trim(), betrag:parseNum($("#hE").value), status:$("#hS").value, notiz:$("#hN").value.trim()};
+    if (ein) o.ansatz = Number($("#hA").value); else { o.ansatz = 100; o.wer = $("#hW").value.trim(); }
+    if (!o.titel) { $("#hT").focus(); return; } if (!(o.betrag > 0)) { $("#hE").focus(); return; }
+    $("#fSave").disabled = true; if (await save("haushalt", neu ? null : z.id, o)) closeSheet(); else $("#fSave").disabled = false; };
+  if (!neu) confirmDelete($("#fDel"), () => remove("haushalt", z.id));
+}
+
+// ---------- Aus Wiederkehrend übernehmen ----------
+function hhKandidaten(j) {
+  const [von, bis] = hhSpanne(j), schon = new Set(hhAlle(j).map(z => z.postenId).filter(Boolean));
+  return S.posten.filter(p => p.aktiv !== false && p.typ !== "transfer" && !schon.has(p.id)).map(p => ({p, sum: Math.abs(occurrences(p, von, bis).filter(o => o.kasse === p.kasse).reduce((s, o) => s + o.betrag, 0))})).filter(x => x.sum > 0.005).sort((a, b) => b.sum - a.sum);
+}
+function sheetHhImport() {
+  const j = hhJahr(), ks = hhKandidaten(j);
+  openSheet(`<h2>Aus Wiederkehrend übernehmen</h2>
+  <p class="small" style="margin:0 0 10px">Was unter Wiederkehrend schon geplant ist und in ${esc(hhName(j))} fällt. Unsichere Einnahmen kommen zur Hälfte in den Haushalt, das lässt sich danach je Zeile ändern. Zuschüsse zwischen den Kassen bleiben draußen.</p>
+  ${ks.length ? `<div class="list" id="hhImp">${ks.map((x, i) => `<label class="item" style="grid-template-columns:auto 1fr auto;align-items:center;cursor:pointer"><input type="checkbox" data-i="${i}" checked style="width:18px;height:18px"><span class="n">${esc(x.p.name)}${x.p.sicherheit === "unsicher" ? `<span class="tag unsicher">unsicher</span>` : ""}</span><span class="a ${x.p.typ === "einnahme" ? "pos" : ""}">${x.p.typ === "einnahme" ? "+" : "−"}${eur(x.sum)}</span><span class="m" style="grid-column:2/-1">${esc(x.p.kategorie || "")} · ${esc(kName(x.p.kasse))}</span></label>`).join("")}</div>` : `<div class="empty">Nichts zu übernehmen: Für diesen Zeitraum ist unter Wiederkehrend nichts geplant, oder alles steht schon im Haushalt.</div>`}
+  <div class="row" style="margin-top:12px"><span class="sp"></span><button id="fCancel">Abbrechen</button>${ks.length ? `<button class="primary" id="fSave">Übernehmen</button>` : ""}</div>`);
+  $("#fCancel").onclick = closeSheet;
+  if (ks.length) $("#fSave").onclick = async () => {
+    const wahl = [...document.querySelectorAll("#hhImp input:checked")].map(c => ks[Number(c.dataset.i)]); if (!wahl.length) { closeSheet(); return; }
+    $("#fSave").disabled = true; let n = 0;
+    for (const x of wahl) { const p = x.p; if (await save("haushalt", null, {art:"zeile", jahr:hhKey(j), typ:p.typ, bereich:p.kategorie || "Sonstiges", titel:p.name, betrag:Math.round(x.sum * 100) / 100, ansatz:p.typ === "einnahme" ? (HH_ANSATZ[p.sicherheit] ?? 100) : 100, kasse:p.kasse, status:p.typ === "ausgabe" && p.sicherheit !== "fest" ? "gemeldet" : "bewilligt", postenId:p.id, notiz:"aus Wiederkehrend"})) n++; else break; }
+    closeSheet(); if (n) toast(n === 1 ? "1 Zeile übernommen." : n + " Zeilen übernommen."); };
+}
+async function hhVorjahr(btn) {
+  if (btn.dataset.sicher !== "1") { btn.dataset.sicher = "1"; btn.textContent = "Wirklich übernehmen?"; setTimeout(() => { if (btn.isConnected) { btn.dataset.sicher = ""; btn.textContent = hhName(hhJahr() - 1) + " übernehmen"; } }, 4000); return; }
+  const j = hhJahr(), alt = hhAlle(j - 1).filter(z => z.status !== "gestrichen"); btn.disabled = true; let n = 0;
+  for (const z of alt) { const o = {...z, jahr:hhKey(j), status:z.typ === "ausgabe" ? "gemeldet" : "bewilligt", postenId:null, notiz:z.notiz || ""}; delete o.id; delete o.geaendert; delete o.von; if (await save("haushalt", null, o)) n++; else break; }
+  if (n) toast(`${n} ${n === 1 ? "Zeile" : "Zeilen"} aus ${hhName(j - 1)} übernommen. Bedarf bitte neu bewilligen.`);
+}
+
+// ---------- Einstellungen ----------
+function sheetHhCfg() {
+  const c = hhCfg(), hat = S.haushalt.some(z => z.art === "zeile");
+  openSheet(`<h2>Haushalt einstellen</h2>
+  <div class="fgrid">
+    <label class="f full">Haushaltsjahr<select id="cA"><option value="saison" ${hhArt() === "saison" ? "selected" : ""}>Saison, 1. Juli bis 30. Juni</option><option value="kalender" ${hhArt() === "kalender" ? "selected" : ""}>Kalenderjahr, Januar bis Dezember</option></select></label>
+    <label class="f full">Polster als Ziel, in % der Ausgaben<input id="cP" inputmode="decimal" value="${String(hhPolsterPct()).replace(".", ",")}"></label>
+  </div>
+  <p class="small">Das Polster ist der Überschuss, der am Jahresende mindestens bleiben soll: für ein schlechtes Jahr und für größere Anschaffungen.${hat ? " Wer das Haushaltsjahr umstellt: Schon eingetragene Zeilen bleiben bei ihrem bisherigen Zeitraum und sind nach dem Umstellen nicht mehr zu sehen." : ""}</p>
+  <div class="row" style="margin-top:12px"><span class="sp"></span><button id="fCancel">Abbrechen</button><button class="primary" id="fSave">Speichern</button></div>`);
+  $("#fCancel").onclick = closeSheet;
+  $("#fSave").onclick = async () => { const p = parseNum($("#cP").value); $("#fSave").disabled = true;
+    const neuArt = $("#cA").value; if (await save("haushalt", "cfg", {...c, art:"cfg", jahrArt:neuArt, polster:Math.max(0, Math.min(50, p))})) { if (neuArt !== hhArt()) S.hh.jahr = null; closeSheet(); } else $("#fSave").disabled = false; };
+}
+
+async function hhExport() {
+  const j = hhJahr(), zs = hhZeilen(j), s = hhSumme(zs), f = v => (Math.round(v * 100) / 100).toFixed(2).replace(".", ","), q = t => '"' + String(t ?? "").replace(/"/g, '""') + '"';
+  const lines = [["Art","Bereich","Bezeichnung","Kasse","Betrag","Angesetzt in %","Im Haushalt","Stand","Notiz"].join(";")];
+  ["einnahme","ausgabe"].forEach(typ => hhGruppen(zs, typ).forEach(g => g.list.forEach(z => lines.push([typ === "einnahme" ? "Einnahme" : "Ausgabe", q(g.b), q(z.titel), q(kName(z.kasse)), f(Number(z.betrag) || 0), hhAnsatz(z), f(z.status === "gestrichen" ? 0 : (typ === "einnahme" ? hhWert(z) : Number(z.betrag) || 0)), typ === "einnahme" ? (z.status === "gestrichen" ? "gestrichen" : "") : (HH_STATUS[z.status] || "gemeldet"), q(z.notiz)].join(";")))));
+  lines.push("", ["Einnahmen vorsichtig","","","","","", f(s.E)].join(";"), ["Ausgaben","","","","","", f(s.A)].join(";"), [s.erg < 0 ? "Fehlbetrag" : "Überschuss","","","","","", f(s.erg)].join(";"), ["Polster als Ziel","","","","","", f(s.polster)].join(";"));
+  try { await dlCap.save({filename:`Haushalt_${hhKey(j).replace("/", "-")}.csv`, data:new Blob(["﻿" + lines.join("\n")], {type:"text/csv"})}); } catch (e) { if (e && e.code !== "declined") toast("Export nicht möglich."); }
+}
+
+// Klicks im Reiter Haushalt. Liefert true, wenn der Klick hierher gehörte.
+function hhKlick(t) {
+  const d = t.dataset;
+  if (d.hj) { S.hh.jahr = Number(d.hj); render(); return true; }
+  if (d.hk) { S.hh.kasse = d.hk; render(); return true; }
+  if (d.hedit) { const z = S.haushalt.find(x => x.id === d.hedit); if (z && S.canWrite && S.dbOk) sheetHaushalt(z); return true; }
+  const a = d.act || "";
+  if (a === "hh-bedarf") { sheetHaushalt(null, "ausgabe"); return true; }
+  if (a === "hh-einnahme") { sheetHaushalt(null, "einnahme"); return true; }
+  if (a === "hh-import") { sheetHhImport(); return true; }
+  if (a === "hh-vorjahr") { hhVorjahr(t); return true; }
+  if (a === "hh-cfg") { sheetHhCfg(); return true; }
+  if (a === "hh-export") { hhExport(); return true; }
+  return false;
+}
+
 // ---------- Darstellung & Bedienung ----------
 function render() {
   document.querySelectorAll("#tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === S.tab));
   document.querySelectorAll("#modeSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === S.mode));
+  // Im Haushalt gilt immer der vorsichtige Ansatz je Zeile, der Schalter Erwartet/Vorsichtig hat dort nichts zu tun
+  { const hh = S.tab === "haushalt", seg = $("#modeSeg"), lb = seg && seg.previousElementSibling; if (seg) seg.hidden = hh; if (lb && lb.classList.contains("lbl")) lb.hidden = hh; }
   const bn = [];
   if (!S.dbOk && S.ready) bn.push("Vorschau mit Beispieldaten. Gespeichert wird nur in der geteilten Ansicht auf claude.ai.");
   else if (!S.canWrite) bn.push("Du kannst hier nur lesen.");
-  if (S.mode === "vorsicht") bn.push("Vorsichtig: unsichere Einnahmen und unsichere Zuschüsse sind herausgerechnet.");
+  if (S.mode === "vorsicht" && S.tab !== "haushalt") bn.push("Vorsichtig: unsichere Einnahmen und unsichere Zuschüsse sind herausgerechnet.");
   $("#banner").innerHTML = bn.map(t=>`<div class="banner">${esc(t)}</div>`).join("");
   if (!S.ready) { $("#view").innerHTML = `<div class="card empty">Lade Daten …</div>`; return; }
-  const v = {uebersicht:viewUebersicht, posten:viewPosten, vorhaben:viewVorhaben, buchungen:viewBuchungen, rat:viewRat}[S.tab];
+  const v = {uebersicht:viewUebersicht, haushalt:viewHaushalt, posten:viewPosten, vorhaben:viewVorhaben, buchungen:viewBuchungen, rat:viewRat}[S.tab];
   const y = window.scrollY; $("#view").innerHTML = v(); window.scrollTo(0, y);
   if (S.tab === "uebersicht") wireChart(S.preview ? forecast({extra:S.preview.extra}) : forecast());
   if (S.tab === "buchungen") wireImport();
@@ -802,11 +989,12 @@ function wireImport() {
 async function readText(f) { const buf = await f.arrayBuffer(); let t = new TextDecoder("utf-8").decode(buf); if (t.includes(String.fromCharCode(0xFFFD))) t = new TextDecoder("windows-1252").decode(buf); return t; }
 
 document.addEventListener("click", async e => {
-  const t = e.target.closest("button,[data-edit],[data-act]"); if (!t) return;
+  const t = e.target.closest("button,[data-edit],[data-hedit],[data-act]"); if (!t) return;
   if (t.closest("#tabs")) { S.tab = t.dataset.tab; render(); return; }
   if (t.closest("#modeSeg")) { S.mode = t.dataset.mode; render(); return; }
   if (t.closest("#impK")) { const k = t.dataset.k; t.parentElement.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", b===t)); if (IMP) { IMP.kasse = k; IMP.rows.forEach(r=>{r.kasse=k; zuordnen(r);}); render(); } return; }
   const d = t.dataset;
+  if (hhKlick(t)) return;
   if (d.h) { S.horizon = Number(d.h); render(); return; }
   if (d.frage) { frageStellen(FRAGEN[Number(d.frage)]); return; }
   if (d.prev) { previewVorhaben(S.vorhaben.find(v=>v.id===d.prev)); return; }
@@ -837,6 +1025,13 @@ function demo() {
     {id:"d3", name:"Beispiel: Schiedsrichter", typ:"ausgabe", kasse:"abteilung", rhythmus:"monatlich", betrag:350, start:NOW, kategorie:"Schiedsrichter", sicherheit:"fest"},
     {id:"d4", name:"Beispiel: Mitgliedsbeiträge Förderverein", typ:"einnahme", kasse:"foerderverein", rhythmus:"jahr", betrag:4200, start:addM(NOW,3), kategorie:"Mitgliedsbeiträge", sicherheit:"fest"},
     {id:"d5", name:"Beispiel: Zuschuss Jugend", typ:"transfer", kasse:"foerderverein", an:"abteilung", rhythmus:"jahr", betrag:2500, start:addM(NOW,4), kategorie:"Sonstiges", sicherheit:"geplant"}];
+  const hj = hhKey(hhAktuell());
+  S.haushalt = [
+    {id:"h1", art:"zeile", jahr:hj, typ:"ausgabe", bereich:"Trainer und Material", titel:"Beispiel: Trainingsmaterial", betrag:1000, kasse:"abteilung", status:"bewilligt"},
+    {id:"h2", art:"zeile", jahr:hj, typ:"ausgabe", bereich:"Jugend", titel:"Beispiel: Turniere und Fahrten", betrag:1800, kasse:"abteilung", status:"gemeldet"},
+    {id:"h3", art:"zeile", jahr:hj, typ:"ausgabe", bereich:"Spielbetrieb und Verband", titel:"Beispiel: Verband und Schiedsrichter", betrag:7000, kasse:"abteilung", status:"bewilligt"},
+    {id:"h4", art:"zeile", jahr:hj, typ:"einnahme", bereich:"Partner", titel:"Beispiel: Partnerbeiträge", betrag:6000, ansatz:100, kasse:"abteilung", status:"bewilligt"},
+    {id:"h5", art:"zeile", jahr:hj, typ:"einnahme", bereich:"Feste & Events", titel:"Beispiel: Kerwe", betrag:8000, ansatz:50, kasse:"abteilung", status:"bewilligt"}];
   S.vorhaben = [{id:"v1", titel:"Beispiel: Ballwand", betrag:9000, zuschuss:3000, zuschussUnsicher:true, kasse:"abteilung", prio:1, monat:addM(NOW,6)}];
 }
 
